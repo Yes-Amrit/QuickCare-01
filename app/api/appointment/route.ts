@@ -43,13 +43,13 @@ const appointments = await appointmentsCollection.aggregate([
   },
   {
     $addFields: {
-      doctorId: { $toObjectId: "$doctorId" } // Convert doctorId to ObjectId
+      doctorId: { $toObjectId: "67aa326e4c09158a3b227873" } 
     }
   },
   {
     $lookup: {
       from: "doctors",
-      localField: "doctorId",
+      localField: "doctorIdObj",
       foreignField: "_id",
       as: "doctorInfo"
     }
@@ -104,12 +104,11 @@ export async function POST(req: NextRequest) {
 
     const { doctorUsername, date, time, status } = await req.json();
 
-    if (!doctorUsername || !date || !time) {
+    if ( !date || !time) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Retrieve userId from session (Assuming you store it in req.cookies or AuthContext)
-    const userId = "67a8784463abd080a76198ca"; // Replace this with session logic
+    const userId = "67a8784463abd080a76198ca"; 
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized: User not logged in" }, { status: 401 });
