@@ -105,45 +105,58 @@ export default function AppointmentPage() {
   //   }
   // };
   const handleBookAppointment = async () => {
-    if (selectedDoctor && selectedDate && selectedTime && user) {
-      try {
-        const appointmentData = {
-          doctorId: selectedDoctor._id,
-          userId: user._id,
-          date: selectedDate.toISOString().split('T')[0],
-          time: selectedTime,
+  if (selectedDoctor && selectedDate && selectedTime && user) {
+    try {
+      const appointmentData = {
+        doctorId: selectedDoctor._id,
+        userId: user._id,
+        date: selectedDate.toISOString().split('T')[0],
+        time: selectedTime,
+      };
+
+      const response = await fetch('/api/appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const manualData = {
+          id: "67aa326e4c09158a3b227873",
+          name: "Dr. A. Sharma",
+          username: "asharma",
+          speciality: "Cardiologist",
+          fees: 1200,
+          availability: "Mon, Wed, Fri",
+          rating: 4.5,
+          image: "https://plus.unsplash.com/premium_photo-1682089874677-3eee554feb19?w=6…"
         };
-  
-        const response = await fetch('/api/appointment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(appointmentData),
-        });
-  
-        if (response.ok) {
-          const result = await response.json();
-          setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
-          setShowNotification(true);
-          setIsDialogOpen(false);
-          window.dispatchEvent(new Event('appointmentBooked'));
-        } else {
-          const errorData = await response.json();
-          setNotificationMessage(`Failed to book appointment: ${errorData.error}`);
-          setShowNotification(true);
-        }
-      } catch (error) {
-        console.error('Error booking appointment:', error);
-        setNotificationMessage('An error occurred while booking the appointment');
+
+        setNotificationMessage(`Appointment booked with ${manualData.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
+        setShowNotification(true);
+        setIsDialogOpen(false);
+        window.dispatchEvent(new Event('appointmentBooked'));
+
+        // You can use the manualData object here to display or store the information as needed
+        console.log("Appointment booked with manual data:", manualData);
+      } else {
+        const errorData = await response.json();
+        setNotificationMessage(`Failed to book appointment: ${errorData.error}`);
         setShowNotification(true);
       }
-    } else {
-      setNotificationMessage('Please select a doctor, date, and time');
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      setNotificationMessage('An error occurred while booking the appointment');
       setShowNotification(true);
     }
-  };
-  
+  } else {
+    setNotificationMessage('Please select a doctor, date, and time');
+    setShowNotification(true);
+  }
+};
 
   
   return (
