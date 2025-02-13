@@ -22,68 +22,57 @@ type Appointment = {
  * Fetch all appointments for the given user id.
  * @param {NextRequest} req
  * @returns {Promise<NextResponse>}
- */export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const client = await clientPromise;
     const db = client.db("test");
     const appointmentsCollection = db.collection<Appointment>("Appointment");
 
     const { searchParams } = new URL(req.url);
-    const userId = '67a8784463abd080a76198ca';
+    const userId = searchParams.get("userId");
 
     if (!userId) {
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
-    const { ObjectId } = require('mongodb');
-
-const appointments = await appointmentsCollection.aggregate([
-  {
-    $match: { userId: '67a8784463abd080a76198ca' }
-  },
-  {
-    $addFields: {
-      doctorId: { $toObjectId: "$doctorId" } // Convert doctorId to ObjectId
-    }
-  },
-  {
-    $lookup: {
-      from: "doctors",
-      localField: "doctorIdObj",
-      foreignField: "_id",
-      as: "doctorInfo"
-    }
-  },
-  {
-    $unwind: {
-      path: "$doctorInfo",
-      preserveNullAndEmptyArrays: true
-    }
-  },
-  {
-    $project: {
-      _id: { $toString: "$_id" },
-      doctorId: { $toString: "$doctorId" },
-      userId: 1,
-      date: 1,
-      time: 1,
-      status: 1,
-      doctor: {
-        _id: { $toString: "$doctorInfo._id" },
-        name: "$doctorInfo.name",
-        speciality: "$doctorInfo.speciality",
-        fees: "$doctorInfo.fees",
-        availability: "$doctorInfo.availability",
-        rating: "$doctorInfo.rating",
-        image: "$doctorInfo.image"
+    const appointments = await appointmentsCollection.aggregate([
+      {
+        $match: { userId: new ObjectId(userId) }
+      },
+      {
+        $lookup: {
+          from: "doctors",
+          localField: "doctorId",
+          foreignField: "_id",
+          as: "doctorInfo"
+        }
+      },
+      {
+        $unwind: {
+          path: "$doctorInfo",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          id: { $toString: "$_id" },
+          doctorId: { $toString: "$doctorId" },
+          userId: { $toString: "$userId" },
+          date: 1,
+          time: 1,
+          status: 1,
+          doctor: {
+            _id: { $toString: "$doctorInfo._id" },
+            name: "$doctorInfo.name",
+            speciality: "$doctorInfo.speciality",
+            fees: "$doctorInfo.fees",
+            availability: "$doctorInfo.availability",
+            rating: "$doctorInfo.rating",
+            image: "$doctorInfo.image"
+          }
+        }
       }
-    }
-  }
-]).toArray();
-
-
-
-    console.log("API Processed Response:", JSON.stringify({ appointments }, null, 2));
+    ]).toArray();
 
     return NextResponse.json({ appointments }, { status: 200 });
   } catch (error) {
@@ -94,33 +83,32 @@ const appointments = await appointmentsCollection.aggregate([
     );
   }
 }
+  */
 
 export async function POST(req: NextRequest) {
   try {
     const client = await clientPromise;
     const db = client.db("test");
-    // const userId = req.cookies.userId;
-    // if (!userId) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-    // const doctorId = db.collection("doctors").findOne({ _id: new ObjectId(req.body.doctorId) });
     const appointmentsCollection = db.collection<Appointment>("Appointment");
+    const doctorsCollection = db.collection("doctors");
 
-    const { doctorId,userId, date, time, status } = await req.json();
+    const { doctorId, userId, date, time } = await req.json();
 
-    // console.log("Received appointment data:", { doctorId, userId, date, time, status }); // Updated logging
-
-    if ( !date || !time ) {
-      console.error("Missing required fields:", { doctorId, userId, date, time, status }); 
+    if (!doctorId || !userId || !date || !time) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-    
+
+    const doctor = await doctorsCollection.findOne({ _id: new ObjectId(doctorId) });
+    if (!doctor) {
+      return NextResponse.json({ error: "Doctor not found" }, { status: 404 });
+    }
+
     const newAppointment: Appointment = {
-      doctorId: new ObjectId('67aa326e4c09158a3b227873'),
-      userId: new ObjectId('67a8784463abd080a76198ca'),
+      doctorId: new ObjectId(doctorId),
+      userId: new ObjectId(userId),
       date,
       time,
-      status
+      status: "pending"
     };
 
     const result = await appointmentsCollection.insertOne(newAppointment);

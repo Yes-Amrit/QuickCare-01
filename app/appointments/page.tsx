@@ -84,13 +84,13 @@ export default function AppointmentsPage() {
           {appointments.map((appointment) => (
             <Card key={appointment.id} className="appointment-card">
               <CardHeader className="flex flex-row items-center gap-4">
-                <Image
+                {/* <Image
                   src={appointment.doctor.image || '/placeholder-avatar.jpg'} // Added fallback
                   alt={appointment.doctor.name}
                   width={64}
                   height={64}
                   className="rounded-full"
-                />
+                /> */}
                 <div>
                   <CardTitle>{appointment.doctor.name}</CardTitle>
                   <CardDescription>{appointment.doctor.speciality}</CardDescription>
