@@ -99,30 +99,25 @@ export async function POST(req: NextRequest) {
   try {
     const client = await clientPromise;
     const db = client.db("test");
-    const appointmentsCollection = db.collection("Appointment");
-    const doctorsCollection = db.collection("doctors");
+    // const userId = req.cookies.userId;
+    // if (!userId) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
+    // const doctorId = db.collection("doctors").findOne({ _id: new ObjectId(req.body.doctorId) });
+    const appointmentsCollection = db.collection<Appointment>("Appointment");
 
-    const { doctorUsername, date, time, status } = await req.json();
+    const { doctorId,userId, date, time, status } = await req.json();
 
-    if ( !date || !time) {
+    // console.log("Received appointment data:", { doctorId, userId, date, time, status }); // Updated logging
+
+    if ( !date || !time ) {
+      console.error("Missing required fields:", { doctorId, userId, date, time, status }); 
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-
-    const userId = "67a8784463abd080a76198ca"; 
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized: User not logged in" }, { status: 401 });
-    }
-
-    // Find doctor ID based on doctorUsername
-    const doctor = await doctorsCollection.findOne({ username: doctorUsername });
-    if (!doctor) {
-      return NextResponse.json({ error: "Doctor not found" }, { status: 404 });
-    }
-
-    const newAppointment = {
-      doctorId: doctor._id, 
-      userId: new ObjectId(userId), 
+    
+    const newAppointment: Appointment = {
+      doctorId: new ObjectId('67aa326e4c09158a3b227873'),
+      userId: new ObjectId('67a8784463abd080a76198ca'),
       date,
       time,
       status
@@ -130,11 +125,10 @@ export async function POST(req: NextRequest) {
 
     const result = await appointmentsCollection.insertOne(newAppointment);
 
-    return NextResponse.json({
-      success: true,
-      appointmentId: result.insertedId.toString()
+    return NextResponse.json({ 
+      success: true, 
+      appointmentId: result.insertedId.toString() 
     }, { status: 201 });
-
   } catch (error) {
     console.error("Error booking appointment:", error);
     return NextResponse.json(
@@ -143,4 +137,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
