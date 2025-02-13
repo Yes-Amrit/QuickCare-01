@@ -45,8 +45,8 @@ export default function AppointmentsPage() {
         const data = await response.json();
         console.log("Fetched appointments:", data);
     
-        if (Array.isArray(data) && data.every(isValidAppointment)) {
-          setAppointments(data);
+        if (Array.isArray(data.appointments) && data.appointments.every(isValidAppointment)) {
+          setAppointments(data.appointments);
         } else {
           throw new Error("Invalid appointment data received");
         }
@@ -57,6 +57,7 @@ export default function AppointmentsPage() {
         setLoading(false);
       }
     };
+    
     if (user===null) {
       setLoading(false);
       setError("You must be logged in to view your appointments.");
@@ -125,24 +126,24 @@ export default function AppointmentsPage() {
 
 function isValidAppointment(appointment: any): appointment is Appointment {
   return (
-    typeof appointment.id === 'string' ||
-    typeof appointment.date === 'string' ||
-    typeof appointment.time === 'string' ||
-    ['upcoming', 'completed', 'cancelled'].includes(appointment.status) ||
+    typeof appointment.id === 'string' &&
+    typeof appointment.date === 'string' &&
+    typeof appointment.time === 'string' &&
+    ['upcoming', 'completed', 'cancelled'].includes(appointment.status) &&
     isValidDoctor(appointment.doctor)
   )
 }
 
 function isValidDoctor(doctor: any): doctor is Doctor {
   return (
-    typeof doctor._id === 'string' ||
-    typeof doctor.id === 'number' ||
-    typeof doctor.name === 'string' ||
-    typeof doctor.username === 'string' ||
-    typeof doctor.speciality === 'string' ||
-    typeof doctor.fees === 'number' ||
-    typeof doctor.availability === 'string' ||
-    typeof doctor.rating === 'number' ||
+    typeof doctor._id === 'string' &&
+    typeof doctor.id === 'number' &&
+    typeof doctor.name === 'string' &&
+    typeof doctor.username === 'string' &&
+    typeof doctor.speciality === 'string' &&
+    typeof doctor.fees === 'number' &&
+    typeof doctor.availability === 'string' &&
+    typeof doctor.rating === 'number' &&
     typeof doctor.image === 'string'
   )
 }
