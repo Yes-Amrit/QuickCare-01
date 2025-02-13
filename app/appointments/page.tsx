@@ -38,7 +38,7 @@ export default function AppointmentsPage() {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch(`/api/appointment?userId=${user._id}`);
+        const response = await fetch(`/api/appointment?userId=67a8784463abd080a76198ca`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
