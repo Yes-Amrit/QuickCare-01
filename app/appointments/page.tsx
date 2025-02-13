@@ -39,11 +39,31 @@ export default function AppointmentsPage() {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch(`/api/appointment?userId='67a8784463abd080a76198ca`);
+        const response = await fetch(`/api/appointment?userId='${user?._id}'`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
+        const data: Appointment[] = [
+          {
+            id: "1",
+            date: "2025-02-19",
+            time: "10:00 AM",
+            status: "upcoming",
+            userId: "user123",
+            doctor: {
+              _id: "doc001",
+              id: 1,
+              name: "Dr. A. Sharma",
+              username: "asharma",
+              speciality: "Cardiologist",
+              fees: 1200, 
+              availability: "Monday - Friday, 9 AM - 5 PM",
+              rating: 4.5, 
+              image: "https://plus.unsplash.com/premium_photo-1682089874677-3eee554feb19?w=6…"
+            },
+          },
+        ];
+        
         console.log("Fetched appointments:", data);
     
         if (Array.isArray(data.appointments) && data.appointments.every(isValidAppointment)) {
@@ -99,7 +119,7 @@ export default function AppointmentsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p><span className="font-medium">Date:</span> {new Date(appointment.date).toLocaleDateString()}</p>
+                  <p><span className="font-medium">Date:</span> {appointment.date}</p>
                   <p><span className="font-medium">Time:</span> {appointment.time}</p>
                   <p><span className="font-medium">Status:</span> <span className="capitalize">{appointment.status}</span></p>
                   <p><span className="font-medium">Fees:</span> ₹{appointment.doctor.fees}</p>
