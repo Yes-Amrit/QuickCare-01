@@ -77,26 +77,11 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const backgroundElements = useRef<(HTMLDivElement | null)[]>([]);
   const appointmentRefs = useRef<(HTMLDivElement | null)[]>([]);
   const headerRef = useRef<HTMLHeadingElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    backgroundElements.current.forEach((element, index) => {
-      if (element) {
-        gsap.to(element, {
-          scale: index === 0 ? 1.2 : index === 1 ? 1 : 1.1,
-          x: index === 0 ? 30 : index === 1 ? -30 : 20,
-          y: index === 0 ? -30 : index === 1 ? 30 : 20,
-          duration: 20 - index * 2,
-          repeat: -1,
-          yoyo: true,
-          ease: "none"
-        });
-      }
-    });
-
     if (headerRef.current) {
       gsap.from(headerRef.current, {
         opacity: 0,
@@ -104,17 +89,6 @@ export default function AppointmentsPage() {
         duration: 0.6
       });
     }
-
-    appointmentRefs.current.forEach((element, index) => {
-      if (element) {
-        gsap.from(element, {
-          opacity: 0,
-          x: -20,
-          duration: 0.4,
-          delay: index * 0.1
-        });
-      }
-    });
 
     if (buttonRef.current) {
       gsap.from(buttonRef.current, {
@@ -124,6 +98,20 @@ export default function AppointmentsPage() {
         delay: 0.2
       });
     }
+  }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      appointmentRefs.current.forEach((element, index) => {
+        if (element) {
+          gsap.fromTo(
+            element,
+            { opacity: 0, scale: 0.95 },
+            { opacity: 1, scale: 1, duration: 0.5, delay: index * 0.1 }
+          );
+        }
+      });
+    }, 100);
   }, [appointments]);
 
   const loadAppointments = () => {
@@ -131,12 +119,7 @@ export default function AppointmentsPage() {
       const storedAppointments = localStorage.getItem('appointments');
       if (storedAppointments) {
         const parsedAppointments = JSON.parse(storedAppointments);
-        if (Array.isArray(parsedAppointments) && parsedAppointments.length > 0) {
-          setAppointments(parsedAppointments);
-        } else {
-          setAppointments(sampleAppointments);
-          localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
-        }
+        setAppointments(Array.isArray(parsedAppointments) ? parsedAppointments : sampleAppointments);
       } else {
         setAppointments(sampleAppointments);
         localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
@@ -167,20 +150,6 @@ export default function AppointmentsPage() {
     window.location.href = '/appointment';
   };
 
-  const handleCardHover = (element: HTMLDivElement) => {
-    gsap.to(element, {
-      scale: 1.02,
-      duration: 0.3
-    });
-  };
-
-  const handleCardLeave = (element: HTMLDivElement) => {
-    gsap.to(element, {
-      scale: 1,
-      duration: 0.3
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
@@ -201,23 +170,7 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <div className="min-h-screen relative bg-gradient-to-br from-blue-50 to-purple-50">
-      <div className="absolute inset-0">
-        {/* Reduced opacity background elements */}
-        <div 
-          ref={el => { backgroundElements.current[0] = el; }}
-          className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-lg opacity-20"
-        />
-        <div 
-          ref={el => { backgroundElements.current[1] = el; }}
-          className="absolute top-1/3 right-1/4 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-lg opacity-20"
-        />
-        <div 
-          ref={el => { backgroundElements.current[2] = el; }}
-          className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-lg opacity-20"
-        />
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       <div className="relative z-10 max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <h1 
           ref={headerRef}
@@ -233,8 +186,6 @@ export default function AppointmentsPage() {
                 <div
                   key={appointment.id}
                   ref={el => { appointmentRefs.current[index] = el; }}
-                  onMouseEnter={(e) => handleCardHover(e.currentTarget)}
-                  onMouseLeave={(e) => handleCardLeave(e.currentTarget)}
                 >
                   <Card className="bg-white shadow-lg border-0">
                     <CardHeader className="flex flex-row items-center gap-4">
@@ -253,16 +204,12 @@ export default function AppointmentsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {[
-                          { icon: <Calendar className="w-4 h-4 text-blue-500" />, label: "Date", value: appointment.date },
+                        {[{ icon: <Calendar className="w-4 h-4 text-blue-500" />, label: "Date", value: appointment.date },
                           { icon: <Clock className="w-4 h-4 text-blue-500" />, label: "Time", value: appointment.time },
                           { icon: <DollarSign className="w-4 h-4 text-green-500" />, label: "Fees", value: `₹${appointment.doctor.fees}` },
                           { icon: <Star className="w-4 h-4 text-yellow-500" />, label: "Rating", value: `${appointment.doctor.rating}/5` }
                         ].map((item, index) => (
-                          <div 
-                            key={index}
-                            className="flex items-center gap-2"
-                          >
+                          <div key={index} className="flex items-center gap-2">
                             {item.icon}
                             <span className="font-medium text-gray-700">{item.label}:</span>
                             <span className="text-gray-900">{item.value}</span>
@@ -277,57 +224,20 @@ export default function AppointmentsPage() {
           ) : (
             <div className="text-center py-12">
               <p className="text-2xl mb-4 text-blue-700">No appointments found</p>
-              <p className="text-gray-600 mb-8">Book a new appointment to get started</p>
             </div>
           )}
-          
+
           <div className="mt-8 text-center">
             <Button
               ref={buttonRef}
               onClick={handleBookAppointment}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+              className="relative z-20 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-semibold"
             >
               Book New Appointment
             </Button>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-export function Notification({ message, onClose }: { message: string; onClose: () => void }) {
-  const notificationRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (notificationRef.current) {
-      gsap.from(notificationRef.current, {
-        opacity: 0,
-        y: 50,
-        duration: 0.4
-      });
-    }
-
-    const timer = setTimeout(() => {
-      if (notificationRef.current) {
-        gsap.to(notificationRef.current, {
-          opacity: 0,
-          y: 50,
-          duration: 0.4,
-          onComplete: onClose
-        });
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div
-      ref={notificationRef}
-      className="fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg"
-    >
-      {message}
     </div>
   );
 }
