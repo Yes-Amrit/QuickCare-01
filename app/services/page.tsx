@@ -4,17 +4,30 @@ import type React from "react"
 import { useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Video, Calendar, Brain, FileText, Bell, Activity } from "lucide-react"
+import { useRouter } from "next/navigation"
 import gsap from "gsap"
 
 interface ServiceCardProps {
   title: string
   description: string
   icon: React.ReactNode
+  href?: string
 }
 
-const ServiceCardPreview: React.FC<ServiceCardProps> = ({ title, description, icon }) => {
+const ServiceCardPreview: React.FC<ServiceCardProps> = ({ title, description, icon, href }) => {
+  const router = useRouter()
+
+  const handleClick = () => {
+    if (href) {
+      router.push(href)
+    }
+  }
+
   return (
-    <div className="group transition-all duration-300 hover:z-10">
+    <div 
+      className="group transition-all duration-300 hover:z-10 cursor-pointer" 
+      onClick={handleClick}
+    >
       <div className="transform transition-all duration-300 group-hover:-translate-y-4 group-hover:shadow-2xl">
         <Card className="overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl h-full transition-all duration-300 hover:shadow-xl border-blue-200">
           <CardHeader>
@@ -91,34 +104,40 @@ export default function About() {
 
   const services = [
     {
-      title: "Online Consultations",
-      description: "Connect with healthcare professionals from the comfort of your home.",
-      icon: <Video className="w-6 h-6" />,
-    },
-    {
       title: "Appointment Booking",
       description: "Easily schedule appointments with your preferred doctors.",
       icon: <Calendar className="w-6 h-6" />,
+      href: "/appointment",
     },
     {
       title: "AI-Powered Health Assistant",
       description: "Get instant answers to your health queries using our advanced AI.",
       icon: <Brain className="w-6 h-6" />,
+      href: "/ai-help",
     },
     {
-      title: "Electronic Health Records",
-      description: "Securely store and access your medical history anytime, anywhere.",
+      title: "Book Labtest",
+      description: "Book our varoius pathology services anytime, anywhere.",
       icon: <FileText className="w-6 h-6" />,
+      href: "/consultation",
     },
     {
-      title: "Medication Reminders",
-      description: "Never miss a dose with our smart medication reminder system.",
+      title: "Lab Report Analyser",
+      description: "Securely Understand your Lab report with authentic information anytime, anywhere.",
+      icon: <FileText className="w-6 h-6" />,
+      href: "/labreport",
+    },
+    {
+      title: "Online Pharmacy",
+      description: "Get your medicine delivered at your doorsteps instantly",
       icon: <Bell className="w-6 h-6" />,
+      href: "/Onlinepharmacy",
     },
     {
-      title: "Health Tracking",
-      description: "Monitor your vital signs and health metrics with our user-friendly tools.",
+      title: "Diet Planner",
+      description: "Reach your dream body weight goal naturally.",
       icon: <Activity className="w-6 h-6" />,
+      href: "/diet",
     },
   ]
 
@@ -146,7 +165,9 @@ export default function About() {
             solutions that empower patients and support healthcare providers in delivering the best possible care.
           </p>
         </div>
-        <h2 className="text-4xl font-bold text-center mb-12 text-blue-800 drop-shadow-md">Our Services</h2>
+        <h2 ref={titleRef} className="text-4xl font-bold text-center mb-12 text-blue-800 drop-shadow-md">
+          Our Services
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
             <ServiceCardPreview
@@ -154,6 +175,7 @@ export default function About() {
               title={service.title}
               description={service.description}
               icon={service.icon}
+              href={service.href}
             />
           ))}
         </div>

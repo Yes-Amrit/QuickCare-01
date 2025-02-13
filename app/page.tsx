@@ -239,13 +239,16 @@ export default function HomePage() {
                 ) : (
                   <>
                     <Button asChild className="px-8 py-4 text-lg rounded-full">
-                      <Link href="/consultation">Start Consultation</Link>
+                      <Link href="/consultation">Book Your Labtest</Link>
                     </Button>
                     <Button asChild variant="outline" className="px-8 py-4 text-lg rounded-full">
                       <Link href="/appointment">Book an Appointment</Link>
                     </Button>
                     <Button asChild variant="outline" className="px-8 py-4 text-lg rounded-full">
                       <Link href="/ai-help">Chat with AI</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="px-8 py-4 text-lg rounded-full">
+                      <Link href="/labreport">Lab Report Analyser</Link>
                     </Button>
                   </>
                 )

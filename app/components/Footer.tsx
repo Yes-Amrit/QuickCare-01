@@ -52,7 +52,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t border-gray-700 pt-8 text-center">
-          <p className="text-sm">&copy; 2025 HealthBuddy. All rights reserved.</p>
+          <p className="text-sm">&copy; 2025 QuickCare. All rights reserved.</p>
         </div>
       </div>
     </footer>

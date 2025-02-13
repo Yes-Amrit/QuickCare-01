@@ -12,9 +12,9 @@ type Appointment = {
 }
 
 const dummyAppointments: Appointment[] = [
-  { id: 1, patientName: "Alice Johnson", date: "2023-06-15", time: "10:00 AM" },
-  { id: 2, patientName: "Bob Smith", date: "2023-06-15", time: "11:30 AM" },
-  { id: 3, patientName: "Charlie Brown", date: "2023-06-16", time: "2:00 PM" },
+  { id: 1, patientName: "abc1234 ", date: "2025-02-19", time: "10:00 AM" },
+  // { id: 2, patientName: "Bob Smith", date: "2023-06-15", time: "11:30 AM" },
+  // { id: 3, patientName: "Charlie Brown", date: "2023-06-16", time: "2:00 PM" },
   // Add more dummy appointments as needed
 ]
 
