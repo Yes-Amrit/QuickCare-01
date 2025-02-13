@@ -83,7 +83,6 @@ export default function AppointmentsPage() {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // Animate background elements
     backgroundElements.current.forEach((element, index) => {
       if (element) {
         gsap.to(element, {
@@ -98,7 +97,6 @@ export default function AppointmentsPage() {
       }
     });
 
-    // Animate header
     if (headerRef.current) {
       gsap.from(headerRef.current, {
         opacity: 0,
@@ -107,7 +105,6 @@ export default function AppointmentsPage() {
       });
     }
 
-    // Animate appointments
     appointmentRefs.current.forEach((element, index) => {
       if (element) {
         gsap.from(element, {
@@ -119,7 +116,6 @@ export default function AppointmentsPage() {
       }
     });
 
-    // Animate button
     if (buttonRef.current) {
       gsap.from(buttonRef.current, {
         opacity: 0,
@@ -205,9 +201,9 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Reduce background blur effect */}
-      <div className="absolute inset-0 overflow-hidden">
+    <div className="min-h-screen relative bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="absolute inset-0">
+        {/* Reduced opacity background elements */}
         <div 
           ref={el => { backgroundElements.current[0] = el; }}
           className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-lg opacity-20"
@@ -222,15 +218,15 @@ export default function AppointmentsPage() {
         />
       </div>
 
-      <div className="relative max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <h1 
           ref={headerRef}
-          className="text-4xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+          className="text-4xl font-bold text-center mb-8 text-blue-600"
         >
           My Appointments
         </h1>
         
-        <div className="relative z-10"> {/* Add z-index to ensure content stays above background */}
+        <div className="space-y-6">
           {appointments.length > 0 ? (
             <div className="grid gap-6">
               {appointments.map((appointment, index) => (
@@ -239,12 +235,11 @@ export default function AppointmentsPage() {
                   ref={el => { appointmentRefs.current[index] = el; }}
                   onMouseEnter={(e) => handleCardHover(e.currentTarget)}
                   onMouseLeave={(e) => handleCardLeave(e.currentTarget)}
-                  className="transform transition-all duration-300"
                 >
-                  <Card className="group hover:shadow-xl transition-all duration-300 bg-white shadow-md border-0">
+                  <Card className="bg-white shadow-lg border-0">
                     <CardHeader className="flex flex-row items-center gap-4">
                       <div className="flex-1">
-                        <CardTitle className="text-xl font-bold text-blue-700 group-hover:text-blue-800 transition-colors">
+                        <CardTitle className="text-xl font-bold text-blue-700">
                           {appointment.doctor.name}
                         </CardTitle>
                         <CardDescription className="flex items-center gap-2 text-gray-600">
@@ -266,7 +261,7 @@ export default function AppointmentsPage() {
                         ].map((item, index) => (
                           <div 
                             key={index}
-                            className="flex items-center gap-2 hover:translate-x-1 transition-transform duration-200"
+                            className="flex items-center gap-2"
                           >
                             {item.icon}
                             <span className="font-medium text-gray-700">{item.label}:</span>
@@ -287,13 +282,13 @@ export default function AppointmentsPage() {
           )}
           
           <div className="mt-8 text-center">
-            <button
+            <Button
               ref={buttonRef}
               onClick={handleBookAppointment}
-              className="relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
             >
-              <span className="relative z-10">Book New Appointment</span>
-            </button>
+              Book New Appointment
+            </Button>
           </div>
         </div>
       </div>
@@ -330,7 +325,7 @@ export function Notification({ message, onClose }: { message: string; onClose: (
   return (
     <div
       ref={notificationRef}
-      className="fixed bottom-4 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
+      className="fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg"
     >
       {message}
     </div>
