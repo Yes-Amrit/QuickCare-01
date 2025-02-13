@@ -240,7 +240,7 @@ export default function AppointmentsPage() {
                   onMouseLeave={(e) => handleCardLeave(e.currentTarget)}
                   className="transform transition-all duration-300"
                 >
-                  <Card className="group hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-none hover:bg-white/90">
+                  <Card className="group hover:shadow-xl transition-all duration-300 bg-white border-none hover:bg-white">
                     <CardHeader className="flex flex-row items-center gap-4">
                       <div className="flex-1">
                         <CardTitle className="text-xl text-blue-700 group-hover:text-blue-800 transition-colors">
@@ -288,10 +288,10 @@ export default function AppointmentsPage() {
             <button
               ref={buttonRef}
               onClick={handleBookAppointment}
-              className="relative overflow-hidden px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+              className="relative overflow-hidden px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
             >
               <span className="relative z-10">Book New Appointment</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 scale-x-0 hover:scale-x-100 transition-transform duration-300 origin-left" />
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-100 scale-x-0 hover:scale-x-100 transition-transform duration-300 origin-left" />
             </button>
           </div>
         </div>
