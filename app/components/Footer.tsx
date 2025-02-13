@@ -1,61 +1,62 @@
-import Link from "next/link"
+import Link from "next/link";
+import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-800 text-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">QuickCare</h3>
-            <p className="text-sm">Your trusted healthcare companion</p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/" className="text-sm hover:text-sky-300">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="text-sm hover:text-sky-300">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className="text-sm hover:text-sky-300">
-                  Our Services
-                </Link>
-              </li>
-              <li>
-                <Link href="/appointment" className="text-sm hover:text-sky-300">
-                  Book Appointment
-                </Link>
-              </li>
-              <li>
-                <Link href="/consultation" className="text-sm hover:text-sky-300">
-                  Start Consultation
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-sm hover:text-sky-300">
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Contact</h3>
-            <p className="text-sm">123 Health Street, Medical City</p>
-            <p className="text-sm">Phone: (123) 456-7890</p>
-            <p className="text-sm">Email: info@hQuickCare.com</p>
-          </div>
+    <footer className="bg-gray-900 text-white py-10 mt-12">
+      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left Section - Logo & About */}
+        <div>
+          <h2 className="text-2xl font-bold text-blue-400">QuickCare</h2>
+          <p className="mt-2 text-gray-400">Your trusted healthcare companion</p>
         </div>
-        <div className="mt-8 border-t border-gray-700 pt-8 text-center">
-          <p className="text-sm">&copy; 2025 QuickCare. All rights reserved.</p>
+
+        {/* Middle Section - Quick Links */}
+        <div>
+          <h3 className="text-lg font-semibold text-blue-300 mb-3">Quick Links</h3>
+          <ul className="space-y-2">
+            {["Home", "About Us", "Our Services", "Book Appointment", "Start Consultation", "Contact Us"].map((link) => (
+              <li key={link}>
+                <Link href={`/${link.toLowerCase().replace(/\s+/g, "-")}`} className="text-gray-300 hover:text-blue-400 transition">
+                  {link}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Right Section - Contact Info */}
+        <div>
+          <h3 className="text-lg font-semibold text-blue-300 mb-3">Contact</h3>
+          <p className="flex items-center gap-2 text-gray-400">
+            <MapPin size={18} className="text-blue-400" /> 123 Health Street, Medical City
+          </p>
+          <p className="flex items-center gap-2 text-gray-400">
+            <Phone size={18} className="text-blue-400" /> (123) 456-7890
+          </p>
+          <p className="flex items-center gap-2 text-gray-400">
+            <Mail size={18} className="text-blue-400" /> info@QuickCare.com
+          </p>
+
+          {/* Social Media Icons */}
+          <div className="flex gap-4 mt-4">
+            <Link href="#" className="text-gray-300 hover:text-blue-400 transition">
+              <Facebook size={24} />
+            </Link>
+            <Link href="#" className="text-gray-300 hover:text-blue-400 transition">
+              <Twitter size={24} />
+            </Link>
+            <Link href="#" className="text-gray-300 hover:text-blue-400 transition">
+              <Instagram size={24} />
+            </Link>
+          </div>
         </div>
       </div>
-    </footer>
-  )
-}
 
+      {/* Bottom Section - Copyright */}
+      <div className="text-center text-gray-500 text-sm mt-8 border-t border-gray-700 pt-4">
+        © 2025 QuickCare. All rights reserved.
+      </div>
+    </footer>
+  );
+}
