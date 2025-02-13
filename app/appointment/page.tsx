@@ -1,14 +1,12 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { gsap } from "gsap";
-import { useAuth } from "../contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star } from "lucide-react";
+"use client"
+import { useEffect, useState } from "react"
+import { gsap } from "gsap"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Star } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -17,130 +15,115 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface Doctor {
-  _id: string;
-  name: string;
-  speciality: string;
-  imageUrl?: string;
-  fees: number;
-  availability: string;
-  rating: number;
-}
+} from "@/components/ui/dialog"
+import { Calendar } from "@/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Notification } from "@/components/notification"
+import { useAuth } from "../contexts/AuthContext"
 
 export default function AppointmentPage() {
   const { user } = useAuth();
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
+  const [doctors, setDoctors] = useState<{ _id: string; name: string; speciality: string; image: string; fees: number; availability: string; rating: number }[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedDoctor, setSelectedDoctor] = useState<{ _id: string; name: string; speciality: string; image: string; fees: number; availability: string; rating: number } | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined)
+  const [showNotification, setShowNotification] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await fetch("/api/doctors", { method: "GET" });
-  
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-  
-        const data = await res.json();
-        console.log("Doctors fetched:", data); // Debugging
-        setDoctors(data?.doctors || []);
+        const response = await fetch('/api/doctors')
+        const data = await response.json()
+        setDoctors(data.doctors)
       } catch (error) {
-        console.error("Error fetching doctors:", error);
-        setDoctors([]); // Prevent undefined state
+        console.error("Error fetching doctors:", error)
       }
-    };
-    fetchDoctors();
-  }, []);
-  
-  
+    }
 
-  useEffect(() => {
+    fetchDoctors()
+
     gsap.from(".appointment-content", {
       opacity: 0,
       y: 20,
       duration: 0.8,
       ease: "power3.out",
       stagger: 0.1,
-    });
-  }, []);
+    })
+  }, [])
 
   const filteredDoctors = doctors.filter(
     (doctor) =>
       doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doctor.speciality.toLowerCase().includes(searchTerm.toLowerCase())
-  );  
+  )
 
   const handleBookAppointment = async () => {
-    if (!user) {
-      alert("Please login to book appointments");
-      return;
-    }
-  
-    if (!selectedDoctor || !selectedDate || !selectedTime) {
-      alert("Please select a doctor, date, and time");
-      return;
-    }
-  
-    setLoading(true);
-    try {
-      const response = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    if (selectedDoctor && selectedDate && selectedTime && user) {
+      try {
+        const appointmentData = {
           doctorId: selectedDoctor._id,
-          date: selectedDate.toISOString(),
+          userId: '67a8784463abd080a76198ca',
+          date: selectedDate.toISOString().split('T')[0], 
           time: selectedTime,
-          userId: user._id,
-          status: "pending",
-        }),
-      });
+          status: "pending" 
+        };
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Unknown error");
+        console.log("Appointment data being sent:", appointmentData); // For debugging
+  
+        const response = await fetch('/api/appointment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(appointmentData),
+        });
+  
+        if (response.ok) {
+          const result = await response.json();
+          setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
+          setShowNotification(true);
+          setIsDialogOpen(false);
+          // Trigger a refresh of the appointments list
+          window.dispatchEvent(new Event('appointmentBooked'));
+        } else {
+          const errorData = await response.json();
+          console.error("Server response:", errorData); // For debugging
+          setNotificationMessage(`Failed to book appointment: ${errorData.error}`);
+          setShowNotification(true);
+        }
+      } catch (error) {
+        console.error('Error booking appointment:', error);
+        setNotificationMessage('An error occurred while booking the appointment');
+        setShowNotification(true);
       }
-  
-      const data = await response.json();
-      alert(data.message);
-      setSelectedDoctor(null);
-      setSelectedDate(undefined);
-      setSelectedTime(undefined);
-    } catch (error) {
-      console.error("Booking error:", error);
-      alert("An error occurred while booking the appointment: " + (error instanceof Error ? error.message : "Unknown error"));
-    } finally {
-      setLoading(false);
+    } else {
+      setNotificationMessage('Please select a doctor, date, and time');
+      setShowNotification(true);
     }
   };
   
-
   return (
     <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <h1 className="appointment-content text-3xl font-bold text-center mb-8">Book an Appointment</h1>
       <div className="appointment-content mb-8">
-        <Label htmlFor="search">Search for doctors</Label>
-        <Input 
-          id="search" 
-          placeholder="Search by name or speciality..." 
-          value={searchTerm} 
-          onChange={(e) => setSearchTerm(e.target.value)} 
-        />
+        <Label htmlFor="search">Search for doctors, specialities, or diseases</Label>
+        <Input id="search" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
       <div className="appointment-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDoctors.map((doctor) => (
           <Card key={doctor._id} className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105">
             <CardHeader>
               <Avatar className="w-16 h-16 mx-auto">
-                <AvatarImage src={doctor.imageUrl || `https://i.pravatar.cc/150?u=${doctor._id}`} />
-                <AvatarFallback>{doctor.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
+                <AvatarImage src={doctor.image} />
+                <AvatarFallback>
+                  {doctor.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
               </Avatar>
               <CardTitle className="text-center mt-2">{doctor.name}</CardTitle>
               <CardDescription className="text-center">{doctor.speciality}</CardDescription>
@@ -154,26 +137,28 @@ export default function AppointmentPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Dialog>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full" onClick={() => setSelectedDoctor(doctor)}>
+                <Button className="w-full" onClick={() => {
+            setSelectedDoctor(doctor);
+            setIsDialogOpen(true);
+          }}>
                     Book Appointment
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Book Appointment with {selectedDoctor?.name}</DialogTitle>
-                    <DialogDescription>Select your preferred date and time</DialogDescription>
+                    <DialogDescription>Select a date and time for your appointment.</DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
-                      onSelect={(date) => setSelectedDate(date as Date)}
+                      onSelect={setSelectedDate}
                       className="rounded-md border"
-                      disabled={(date) => date < new Date()}
                     />
-                    <Select onValueChange={(value) => setSelectedTime(value)}>
+                    <Select onValueChange={setSelectedTime}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
@@ -188,9 +173,7 @@ export default function AppointmentPage() {
                     </Select>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleBookAppointment} disabled={loading}>
-                      {loading ? "Booking..." : "Confirm Booking"}
-                    </Button>
+                    <Button onClick={handleBookAppointment}>Confirm Booking</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -198,6 +181,15 @@ export default function AppointmentPage() {
           </Card>
         ))}
       </div>
+      {showNotification && (
+        <Notification
+          message={notificationMessage}
+          onClose={() => {
+            setShowNotification(false);
+            setNotificationMessage('');
+          }}
+        />
+      )}
     </div>
-  );
+  )
 }
