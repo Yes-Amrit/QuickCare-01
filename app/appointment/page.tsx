@@ -40,6 +40,18 @@ export default function AppointmentPage() {
         setDoctors(data.doctors)
       } catch (error) {
         console.error("Error fetching doctors:", error)
+        // Fallback data if API fails
+        setDoctors([
+          {
+            _id: "doc001",
+            name: "Dr. A. Sharma",
+            speciality: "Cardiologist",
+            image: "https://plus.unsplash.com/premium_photo-1682089874677-3eee554feb19?w=640",
+            fees: 1200,
+            availability: "Mon, Wed, Fri",
+            rating: 4.5
+          }
+        ])
       }
     }
 
@@ -60,105 +72,43 @@ export default function AppointmentPage() {
       doctor.speciality.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // const handleBookAppointment = async () => {
-  //   if (selectedDoctor && selectedDate && selectedTime && user) {
-  //     try {
-  //       const appointmentData = {
-  //         doctorId: selectedDoctor._id,
-  //         userId: '67a8784463abd080a76198ca',
-  //         date: selectedDate.toISOString().split('T')[0], 
-  //         time: selectedTime,
-  //         status: "pending" 
-  //       };
-  
-  //       console.log("Appointment data being sent:", appointmentData); // For debugging
-  
-  //       const response = await fetch('/api/appointment', {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify(appointmentData),
-  //       });
-  
-  //       if (response.ok) {
-  //         const result = await response.json();
-  //         setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
-  //         setShowNotification(true);
-  //         setIsDialogOpen(false);
-  //         // Trigger a refresh of the appointments list
-  //         window.dispatchEvent(new Event('appointmentBooked'));
-  //       } else {
-  //         const errorData = await response.json();
-  //         console.error("Server response:", errorData); // For debugging
-  //         setNotificationMessage(`Failed to book appointment: ${errorData.error}`);
-  //         setShowNotification(true);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error booking appointment:', error);
-  //       setNotificationMessage('An error occurred while booking the appointment');
-  //       setShowNotification(true);
-  //     }
-  //   } else {
-  //     setNotificationMessage('Please select a doctor, date, and time');
-  //     setShowNotification(true);
-  //   }
-  // };
   const handleBookAppointment = async () => {
-  if (selectedDoctor && selectedDate && selectedTime && user) {
-    try {
-      const appointmentData = {
-        doctorId: selectedDoctor._id,
-        userId: user._id,
-        date: selectedDate.toISOString().split('T')[0],
-        time: selectedTime,
-      };
-
-      const response = await fetch('/api/appointment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(appointmentData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        const manualData = {
-          id: "67aa326e4c09158a3b227873",
-          name: "Dr. A. Sharma",
-          username: "asharma",
-          speciality: "Cardiologist",
-          fees: 1200,
-          availability: "Mon, Wed, Fri",
-          rating: 4.5,
-          image: "https://plus.unsplash.com/premium_photo-1682089874677-3eee554feb19?w=6…"
+    if (selectedDoctor && selectedDate && selectedTime && user) {
+      try {
+        const appointmentData = {
+          doctorId: selectedDoctor._id,
+          userId: user._id,
+          date: selectedDate.toISOString().split('T')[0],
+          time: selectedTime,
+          status: "upcoming",
+          doctor: selectedDoctor // Include full doctor details
         };
 
-        setNotificationMessage(`Appointment booked with ${manualData.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
+        // Store appointment in localStorage
+        const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+        const newAppointment = {
+          id: Date.now().toString(),
+          ...appointmentData
+        };
+        localStorage.setItem('appointments', JSON.stringify([...existingAppointments, newAppointment]));
+
+        setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
         setShowNotification(true);
         setIsDialogOpen(false);
+       
+        // Trigger appointment update
         window.dispatchEvent(new Event('appointmentBooked'));
-
-        // You can use the manualData object here to display or store the information as needed
-        console.log("Appointment booked with manual data:", manualData);
-      } else {
-        const errorData = await response.json();
-        setNotificationMessage(`Failed to book appointment: ${errorData.error}`);
+      } catch (error) {
+        console.error('Error booking appointment:', error);
+        setNotificationMessage('An error occurred while booking the appointment');
         setShowNotification(true);
       }
-    } catch (error) {
-      console.error('Error booking appointment:', error);
-      setNotificationMessage('An error occurred while booking the appointment');
+    } else {
+      setNotificationMessage('Please select a doctor, date, and time');
       setShowNotification(true);
     }
-  } else {
-    setNotificationMessage('Please select a doctor, date, and time');
-    setShowNotification(true);
-  }
-};
+  };
 
-  
   return (
     <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <h1 className="appointment-content text-3xl font-bold text-center mb-8">Book an Appointment</h1>
@@ -183,7 +133,7 @@ export default function AppointmentPage() {
               <CardDescription className="text-center">{doctor.speciality}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-center mb-2">Fees: ${doctor.fees}</p>
+              <p className="text-center mb-2">Fees: ₹{doctor.fees}</p>
               <p className="text-center mb-2">Available: {doctor.availability}</p>
               <div className="flex justify-center items-center">
                 <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
@@ -193,10 +143,13 @@ export default function AppointmentPage() {
             <CardFooter>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                <Button className="w-full" onClick={() => {
-            setSelectedDoctor(doctor);
-            setIsDialogOpen(true);
-          }}>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      setSelectedDoctor(doctor);
+                      setIsDialogOpen(true);
+                    }}
+                  >
                     Book Appointment
                   </Button>
                 </DialogTrigger>
