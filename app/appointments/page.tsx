@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,9 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 type Doctor = {
   _id: string;
-  id: number;
   name: string;
-  username: string;
   speciality: string;
   fees: number;
   availability: string;
@@ -34,38 +31,31 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // ✅ Hardcoded appointment data
-    const data: Appointment[] = [
-      {
-        id: "1",
-        date: "2025-02-19",
-        time: "10:00 AM",
-        status: "upcoming",
-        userId: "user123", // ✅ Ensure `userId` is present
-        doctor: {
-          _id: "doc001",
-          id: 1,
-          name: "Dr. A. Sharma",
-          username: "asharma",
-          speciality: "Cardiologist",
-          fees: 1200,
-          availability: "Monday - Friday, 9 AM - 5 PM",
-          rating: 4.5,
-          image: "https://plus.unsplash.com/premium_photo-1682089874677-3eee554feb19?w=640",
-        },
-      },
-    ];
-
-    console.log("Fetched appointments:", data);
-
-    if (Array.isArray(data) && data.every(isValidAppointment)) {
-      setAppointments(data);
-    } else {
-      setError("Invalid appointment data received");
+  const loadAppointments = () => {
+    try {
+      const storedAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      if (Array.isArray(storedAppointments) && storedAppointments.every(isValidAppointment)) {
+        setAppointments(storedAppointments);
+      }
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+      setError('Failed to load appointments');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setLoading(false);
+  useEffect(() => {
+    loadAppointments();
+
+    const handleAppointmentBooked = () => {
+      loadAppointments();
+    };
+
+    window.addEventListener('appointmentBooked', handleAppointmentBooked);
+    return () => {
+      window.removeEventListener('appointmentBooked', handleAppointmentBooked);
+    };
   }, []);
 
   if (loading) {
@@ -117,28 +107,41 @@ export default function AppointmentsPage() {
   );
 }
 
-// ✅ Ensure data validation
 function isValidAppointment(appointment: any): appointment is Appointment {
   return (
     typeof appointment.id === "string" &&
     typeof appointment.date === "string" &&
     typeof appointment.time === "string" &&
-    typeof appointment.userId === "string" &&
-    ["upcoming", "completed", "cancelled"].includes(appointment.status) &&
-    isValidDoctor(appointment.doctor)
+    typeof appointment.status === "string" &&
+    appointment.doctor &&
+    typeof appointment.doctor._id === "string" &&
+    typeof appointment.doctor.name === "string" &&
+    typeof appointment.doctor.speciality === "string" &&
+    typeof appointment.doctor.fees === "number" &&
+    typeof appointment.doctor.availability === "string" &&
+    typeof appointment.doctor.rating === "number" &&
+    typeof appointment.doctor.image === "string"
   );
 }
 
-function isValidDoctor(doctor: any): doctor is Doctor {
+// components/notification.tsx
+interface NotificationProps {
+  message: string;
+  onClose: () => void;
+}
+
+export function Notification({ message, onClose }: NotificationProps) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
   return (
-    typeof doctor._id === "string" &&
-    typeof doctor.id === "number" &&
-    typeof doctor.name === "string" &&
-    typeof doctor.username === "string" &&
-    typeof doctor.speciality === "string" &&
-    typeof doctor.fees === "number" &&
-    typeof doctor.availability === "string" &&
-    typeof doctor.rating === "number" &&
-    typeof doctor.image === "string"
+    <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+      {message}
+    </div>
   );
 }
