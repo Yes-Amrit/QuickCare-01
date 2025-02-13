@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { gsap } from "gsap";
 import ProfileButton from "./ProfileButton";
@@ -18,6 +18,7 @@ const navItems = [
 export default function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     gsap.from(".nav-item", {
@@ -34,11 +35,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
+            {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="text-2xl font-bold text-sky-600">
                 QuickCare
               </Link>
             </div>
+
+            {/* Navigation Links */}
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navItems.map((item) =>
                 item.external ? (
@@ -71,16 +75,39 @@ export default function Navbar() {
               )}
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+
+          {/* Profile/Login Section */}
+          <div className="flex items-center space-x-4 relative">
             {user ? (
               <ProfileButton user={user} onLogout={logout} />
             ) : (
-              <Link
-                href="/login"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-              >
-                Login / Sign Up
-              </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                >
+                  Login / Sign Up
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                    <Link
+                      href="/login"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
