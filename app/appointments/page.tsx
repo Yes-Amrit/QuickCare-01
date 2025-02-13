@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, Star, DollarSign, Activity } from "lucide-react";
+import gsap from "gsap";
 
-// Same type definitions and sample data as before...
 type Doctor = {
   _id: string;
   name: string;
@@ -24,7 +23,6 @@ type Appointment = {
   status: "upcoming" | "completed" | "cancelled";
 };
 
-// Sample data for testing
 const sampleAppointments: Appointment[] = [
   {
     id: "1",
@@ -73,66 +71,82 @@ const getStatusColor = (status: string) => {
   }
 };
 
-// Animation variants for Framer Motion
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.4 }
-  }
-};
-
-const buttonVariants = {
-  hover: { 
-    scale: 1.05,
-    transition: { duration: 0.2 }
-  },
-  tap: { 
-    scale: 0.95,
-    transition: { duration: 0.1 }
-  }
-};
-
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const backgroundElements = useRef<(HTMLDivElement | null)[]>([]);
+  const appointmentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const headerRef = useRef<HTMLHeadingElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // Animate background elements
+    backgroundElements.current.forEach((element, index) => {
+      if (element) {
+        gsap.to(element, {
+          scale: index === 0 ? 1.2 : index === 1 ? 1 : 1.1,
+          x: index === 0 ? 30 : index === 1 ? -30 : 20,
+          y: index === 0 ? -30 : index === 1 ? 30 : 20,
+          duration: 20 - index * 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "none"
+        });
+      }
+    });
+
+    // Animate header
+    if (headerRef.current) {
+      gsap.from(headerRef.current, {
+        opacity: 0,
+        y: -20,
+        duration: 0.6
+      });
+    }
+
+    // Animate appointments
+    appointmentRefs.current.forEach((element, index) => {
+      if (element) {
+        gsap.from(element, {
+          opacity: 0,
+          x: -20,
+          duration: 0.4,
+          delay: index * 0.1
+        });
+      }
+    });
+
+    // Animate button
+    if (buttonRef.current) {
+      gsap.from(buttonRef.current, {
+        opacity: 0,
+        y: 20,
+        duration: 0.4,
+        delay: 0.2
+      });
+    }
+  }, [appointments]);
 
   const loadAppointments = () => {
     try {
-      // First try to load from localStorage
       const storedAppointments = localStorage.getItem('appointments');
       if (storedAppointments) {
         const parsedAppointments = JSON.parse(storedAppointments);
         if (Array.isArray(parsedAppointments) && parsedAppointments.length > 0) {
           setAppointments(parsedAppointments);
         } else {
-          // If localStorage is empty, use sample data
           setAppointments(sampleAppointments);
           localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
         }
       } else {
-        // If no data in localStorage, use sample data
         setAppointments(sampleAppointments);
         localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
       }
     } catch (error) {
       console.error('Error loading appointments:', error);
       setError('Failed to load appointments');
-      // Fallback to sample data on error
       setAppointments(sampleAppointments);
     } finally {
       setLoading(false);
@@ -156,6 +170,20 @@ export default function AppointmentsPage() {
     window.location.href = '/appointment';
   };
 
+  const handleCardHover = (element: HTMLDivElement) => {
+    gsap.to(element, {
+      scale: 1.02,
+      duration: 0.3
+    });
+  };
+
+  const handleCardLeave = (element: HTMLDivElement) => {
+    gsap.to(element, {
+      scale: 1,
+      duration: 0.3
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
@@ -169,83 +197,46 @@ export default function AppointmentsPage() {
 
   if (error) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center py-12 text-red-500"
-      >
+      <div className="text-center py-12 text-red-500">
         {error}
-      </motion.div>
+      </div>
     );
   }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div 
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 30, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
+        <div 
+          ref={el => { backgroundElements.current[0] = el; }}
           className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
         />
-        <motion.div 
-          animate={{
-            scale: [1.2, 1, 1.2],
-            x: [0, -30, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "linear"
-          }}
+        <div 
+          ref={el => { backgroundElements.current[1] = el; }}
           className="absolute top-1/3 right-1/4 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
         />
-        <motion.div 
-          animate={{
-            scale: [1, 1.1, 1],
-            x: [0, 20, 0],
-            y: [0, 20, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "linear"
-          }}
+        <div 
+          ref={el => { backgroundElements.current[2] = el; }}
           className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
         />
       </div>
 
       <div className="relative max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <motion.h1 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+        <h1 
+          ref={headerRef}
           className="text-4xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
         >
           My Appointments
-        </motion.h1>
+        </h1>
         
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <div>
           {appointments.length > 0 ? (
             <div className="grid gap-6">
-              {appointments.map((appointment) => (
-                <motion.div
+              {appointments.map((appointment, index) => (
+                <div
                   key={appointment.id}
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.02 }}
+                  ref={el => { appointmentRefs.current[index] = el; }}
+                  onMouseEnter={(e) => handleCardHover(e.currentTarget)}
+                  onMouseLeave={(e) => handleCardLeave(e.currentTarget)}
                   className="transform transition-all duration-300"
                 >
                   <Card className="group hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-none hover:bg-white/90">
@@ -259,92 +250,87 @@ export default function AppointmentsPage() {
                           {appointment.doctor.speciality}
                         </CardDescription>
                       </div>
-                      <motion.div 
-                        whileHover={{ scale: 1.05 }}
-                        className={`px-3 py-1 rounded-full text-white text-sm ${getStatusColor(appointment.status)}`}
-                      >
+                      <div className={`px-3 py-1 rounded-full text-white text-sm ${getStatusColor(appointment.status)}`}>
                         {appointment.status}
-                      </motion.div>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <motion.div className="space-y-3">
+                      <div className="space-y-3">
                         {[
                           { icon: <Calendar className="w-4 h-4 text-blue-500" />, label: "Date", value: appointment.date },
                           { icon: <Clock className="w-4 h-4 text-blue-500" />, label: "Time", value: appointment.time },
                           { icon: <DollarSign className="w-4 h-4 text-green-500" />, label: "Fees", value: `₹${appointment.doctor.fees}` },
                           { icon: <Star className="w-4 h-4 text-yellow-500" />, label: "Rating", value: `${appointment.doctor.rating}/5` }
                         ].map((item, index) => (
-                          <motion.div 
+                          <div 
                             key={index}
-                            className="flex items-center gap-2"
-                            whileHover={{ x: 5 }}
-                            transition={{ duration: 0.2 }}
+                            className="flex items-center gap-2 hover:translate-x-1 transition-transform duration-200"
                           >
                             {item.icon}
                             <span className="font-medium">{item.label}:</span> {item.value}
-                          </motion.div>
+                          </div>
                         ))}
-                      </motion.div>
+                      </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (
-            <motion.div 
-              className="text-center py-12"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
+            <div className="text-center py-12">
               <p className="text-2xl mb-4 text-blue-700">No appointments found</p>
               <p className="text-gray-600 mb-8">Book a new appointment to get started</p>
-            </motion.div>
+            </div>
           )}
           
-          <motion.div 
-            className="mt-8 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <motion.button
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
+          <div className="mt-8 text-center">
+            <button
+              ref={buttonRef}
               onClick={handleBookAppointment}
               className="relative overflow-hidden px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
             >
               <span className="relative z-10">Book New Appointment</span>
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600"
-                initial={{ scaleX: 0 }}
-                whileHover={{ scaleX: 1 }}
-                transition={{ duration: 0.3 }}
-                style={{ originX: 0 }}
-              />
-            </motion.button>
-          </motion.div>
-        </motion.div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 scale-x-0 hover:scale-x-100 transition-transform duration-300 origin-left" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 export function Notification({ message, onClose }: { message: string; onClose: () => void }) {
+  const notificationRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const timer = setTimeout(onClose, 5000);
+    if (notificationRef.current) {
+      gsap.from(notificationRef.current, {
+        opacity: 0,
+        y: 50,
+        duration: 0.4
+      });
+    }
+
+    const timer = setTimeout(() => {
+      if (notificationRef.current) {
+        gsap.to(notificationRef.current, {
+          opacity: 0,
+          y: 50,
+          duration: 0.4,
+          onComplete: onClose
+        });
+      }
+    }, 5000);
+
     return () => clearTimeout(timer);
   }, [onClose]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
+    <div
+      ref={notificationRef}
       className="fixed bottom-4 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
     >
       {message}
-    </motion.div>
+    </div>
   );
 }
