@@ -206,18 +206,19 @@ export default function AppointmentsPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
+      {/* Reduce background blur effect */}
       <div className="absolute inset-0 overflow-hidden">
         <div 
           ref={el => { backgroundElements.current[0] = el; }}
-          className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
+          className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-lg opacity-20"
         />
         <div 
           ref={el => { backgroundElements.current[1] = el; }}
-          className="absolute top-1/3 right-1/4 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
+          className="absolute top-1/3 right-1/4 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-lg opacity-20"
         />
         <div 
           ref={el => { backgroundElements.current[2] = el; }}
-          className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
+          className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-lg opacity-20"
         />
       </div>
 
@@ -229,7 +230,7 @@ export default function AppointmentsPage() {
           My Appointments
         </h1>
         
-        <div>
+        <div className="relative z-10"> {/* Add z-index to ensure content stays above background */}
           {appointments.length > 0 ? (
             <div className="grid gap-6">
               {appointments.map((appointment, index) => (
@@ -240,18 +241,18 @@ export default function AppointmentsPage() {
                   onMouseLeave={(e) => handleCardLeave(e.currentTarget)}
                   className="transform transition-all duration-300"
                 >
-                  <Card className="group hover:shadow-xl transition-all duration-300 bg-white border-none hover:bg-white">
+                  <Card className="group hover:shadow-xl transition-all duration-300 bg-white shadow-md border-0">
                     <CardHeader className="flex flex-row items-center gap-4">
                       <div className="flex-1">
-                        <CardTitle className="text-xl text-blue-700 group-hover:text-blue-800 transition-colors">
+                        <CardTitle className="text-xl font-bold text-blue-700 group-hover:text-blue-800 transition-colors">
                           {appointment.doctor.name}
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-2">
+                        <CardDescription className="flex items-center gap-2 text-gray-600">
                           <Activity className="w-4 h-4" />
                           {appointment.doctor.speciality}
                         </CardDescription>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-white text-sm ${getStatusColor(appointment.status)}`}>
+                      <div className={`px-3 py-1 rounded-full text-white text-sm font-medium ${getStatusColor(appointment.status)}`}>
                         {appointment.status}
                       </div>
                     </CardHeader>
@@ -268,7 +269,8 @@ export default function AppointmentsPage() {
                             className="flex items-center gap-2 hover:translate-x-1 transition-transform duration-200"
                           >
                             {item.icon}
-                            <span className="font-medium">{item.label}:</span> {item.value}
+                            <span className="font-medium text-gray-700">{item.label}:</span>
+                            <span className="text-gray-900">{item.value}</span>
                           </div>
                         ))}
                       </div>
@@ -288,10 +290,9 @@ export default function AppointmentsPage() {
             <button
               ref={buttonRef}
               onClick={handleBookAppointment}
-              className="relative overflow-hidden px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+              className="relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
             >
               <span className="relative z-10">Book New Appointment</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-100 scale-x-0 hover:scale-x-100 transition-transform duration-300 origin-left" />
             </button>
           </div>
         </div>
