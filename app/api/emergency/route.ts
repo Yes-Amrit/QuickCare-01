@@ -1,55 +1,80 @@
-// app/api/emergency/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-
-interface EmergencyRequest {
-  name: string;
-  phone: string;
-  address: string;
-  reason: string;
-  location?: {
-    coordinates: {
-      latitude: number;
-      longitude: number;
-      accuracy: number;
-    };
-    addressDetails: any;
-  };
-}
+import { connectDB } from '../../lib/cdb';
+import { Emergency } from '../../models/emergency';
+import mongoose from 'mongoose';
 
 export async function POST(request: NextRequest) {
   try {
-    const data: EmergencyRequest = await request.json();
-
-    // Validate the required fields
-    if (!data.name || !data.phone || !data.address || !data.reason) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    // Validate content type
+    const contentType = request.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      return NextResponse.json({
+        error: 'Invalid content type',
+        details: 'Expected application/json'
+      }, { status: 415 });
     }
 
-    // Here you would typically:
-    // 1. Save to database
-    // 2. Notify emergency services
-    // 3. Send notifications to admins
-    // 4. Log the request
+    // Safely parse request body
+    let data;
+    try {
+      const text = await request.text();
+      if (!text) {
+        return NextResponse.json({
+          error: 'Empty request body',
+          details: 'Request body cannot be empty'
+        }, { status: 400 });
+      }
+      data = JSON.parse(text);
+    } catch (parseError) {
+      return NextResponse.json({
+        error: 'Invalid JSON',
+        details: parseError instanceof Error ? parseError.message : 'Failed to parse request body'
+      }, { status: 400 });
+    }
 
-    console.log('Emergency request received:', data);
+    // Connect to database
+    await connectDB();
 
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    return NextResponse.json({
-      message: 'Emergency request received successfully',
-      requestId: `EMG-${Date.now()}`,
-      status: 'processing'
+    // Create and validate emergency document
+    const emergency = new Emergency({
+      name: data.name?.trim(),
+      phone: data.phone?.trim(),
+      address: data.address?.trim(),
+      reason: data.reason?.trim(),
     });
 
+    // Validate required fields
+    const validationError = emergency.validateSync();
+    if (validationError) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: Object.values(validationError.errors).map(err => err.message)
+      }, { status: 400 });
+    }
+
+    // Save to database
+    const result = await emergency.save();
+    console.log('✅ Emergency Request Saved:', result._id);
+
+    return NextResponse.json({
+      message: 'Emergency request received',
+      requestId: result._id,
+      status: result.status
+    }, { status: 201 });
+
   } catch (error) {
-    console.error('Emergency request error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process emergency request' },
-      { status: 500 }
-    );
+    console.error('❌ Emergency Request Error:', error);
+    
+    if (error instanceof mongoose.Error.ValidationError) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: Object.values(error.errors).map(err => err.message)
+      }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : 'An unexpected error occurred'
+    }, { status: 500 });
   }
 }

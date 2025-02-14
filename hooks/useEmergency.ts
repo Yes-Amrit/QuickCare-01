@@ -1,3 +1,4 @@
+// hooks/useEmergency.ts
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { EmergencyFormData } from '../app/types/emergency';
@@ -26,14 +27,27 @@ export function useEmergency({ onSubmitSuccess, onSubmitError }: UseEmergencyPro
     setIsSubmitting(true);
 
     try {
+      // Validate required fields before sending
+      const missingFields = Object.entries(formData)
+        .filter(([_, value]) => !value.trim())
+        .map(([key]) => key);
+
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
       const response = await fetch('/api/emergency', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Submission failed');
+        throw new Error(data.error || data.details || 'Submission failed');
       }
 
       onSubmitSuccess?.();
