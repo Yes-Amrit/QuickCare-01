@@ -156,7 +156,7 @@ export default function AboutUsPage() {
     {
       name: "Amrit Raj",
       role: "Lead Developer",
-      image: "/developers/dp.jpg", 
+      image: "/dp.jpg", 
       github: "https://github.com/Yes-Amrit",
       linkedin: "https://www.linkedin.com/in/amrit-raj-a6b29b28a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app ",
     },
