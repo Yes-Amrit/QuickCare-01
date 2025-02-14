@@ -143,20 +143,26 @@ export default function Footer() {
               <span className="absolute -bottom-1 left-0 w-1/2 h-0.5 bg-blue-400" />
             </h3>
             <ul className="space-y-3">
-              {["Home", "About Us", "Our Services", "Book Appointment", "Start Consultation", "Contact Us"].map(
-                (link) => (
-                  <li key={link}>
-                    <Link
-                      href={`/${link.toLowerCase().replace(/\s+/g, "-")}`}
-                      className="text-gray-300 hover:text-blue-400 transition-all duration-300 flex items-center gap-2 group"
-                    >
-                      <span className="h-[1px] w-0 bg-blue-400 group-hover:w-4 transition-all duration-300" />
-                      {link}
-                    </Link>
-                  </li>
-                ),
-              )}
-            </ul>
+  {[
+    { name: "Home", path: "/" },
+    { name: "About Us", path: "/about" },
+    { name: "Our Services", path: "/services" },
+    { name: "Book Appointment", path: "/appointment" },
+    { name: "Start Consultation", path: "/consultation" },
+    { name: "Contact Us", path: "/contact" },
+  ].map(({ name, path }) => (
+    <li key={name}>
+      <Link
+        href={path}
+        className="text-gray-300 hover:text-blue-400 transition-all duration-300 flex items-center gap-2 group"
+      >
+        <span className="h-[1px] w-0 bg-blue-400 group-hover:w-6 transition-all duration-300" />
+        {name}
+      </Link>
+    </li>
+  ))}
+</ul>
+
           </div>
 
           {/* Right Section - Contact Info */}
