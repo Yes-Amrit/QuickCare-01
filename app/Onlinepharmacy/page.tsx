@@ -272,17 +272,20 @@ function Cart({ isOpen, onClose, items, onRemoveItem, onCheckout }: { isOpen: bo
                 <span className="font-bold">Rs.{totalPrice.toFixed(2)}</span>
               </div>
               {showPayment ? (
-                <Elements stripe={stripePromise}>
-                  <CheckoutForm onPaymentSuccess={handlePaymentSuccess} />
-                </Elements>
-              ) : (
-                <button
-                  onClick={() => setShowPayment(true)}
-                  className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition-all transform hover:scale-105"
-                >
-                  Proceed to Payment
-                </button>
-              )}
+  <Elements stripe={stripePromise}>
+    <CheckoutForm 
+      onPaymentSuccess={handlePaymentSuccess} 
+      amount={totalPrice} 
+    />
+  </Elements>
+) : (
+  <button
+    onClick={() => setShowPayment(true)}
+    className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition-all transform hover:scale-105"
+  >
+    Proceed to Payment
+  </button>
+)}
             </div>
           </>
         ) : (
