@@ -1,6 +1,5 @@
-// hooks/useLocationService.ts
 import { useState } from 'react';
-import { LocationStatus, AddressDetails } from '../app/types//emergency';
+import { LocationStatus, AddressDetails } from '../app/types/emergency';
 import { getCurrentPosition } from '../app/lib/location';
 
 export function useLocationService() {
@@ -30,6 +29,44 @@ export function useLocationService() {
     return response.json();
   };
 
+  const formatDetailedAddress = (addressData: any) => {
+    const addressParts = [
+      // Building details
+      addressData.address.building,
+      addressData.address.house_number,
+      
+      // Street details
+      addressData.address.road,
+      addressData.address.street,
+      
+      // Local area
+      addressData.address.suburb,
+      addressData.address.neighbourhood,
+      addressData.address.residential,
+      
+      // Larger area
+      addressData.address.district,
+      addressData.address.city_district,
+      addressData.address.city,
+      
+      // Region
+      addressData.address.county,
+      addressData.address.state_district,
+      addressData.address.state,
+      
+      // Postal code
+      addressData.address.postcode
+    ];
+
+    // Remove any undefined or null values and join with commas
+    return addressParts
+      .filter(Boolean)
+      .join(', ')
+      .replace(/,\s*,/g, ',') // Remove double commas
+      .replace(/\s+/g, ' ')   // Remove extra spaces
+      .trim();
+  };
+
   const getLocation = async (onAddressUpdate?: (address: string) => void) => {
     setLocationStatus({ loading: true, error: null, success: false });
   
@@ -41,14 +78,7 @@ export function useLocationService() {
         throw new Error('Invalid address data');
       }
   
-      const formattedAddress = [
-        addressData.address.house_number,
-        addressData.address.road,
-        addressData.address.suburb,
-        addressData.address.city,
-        addressData.address.state,
-        addressData.address.postcode
-      ].filter(Boolean).join(', ');
+      const formattedAddress = formatDetailedAddress(addressData);
   
       const details: AddressDetails = {
         formatted: formattedAddress,
