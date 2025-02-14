@@ -116,14 +116,13 @@ export default function AppointmentsPage() {
 
   const loadAppointments = () => {
     try {
-      // Use sessionStorage instead of localStorage
-      const storedAppointments = sessionStorage.getItem('appointments');
+      const storedAppointments = localStorage.getItem('appointments');
       if (storedAppointments) {
         const parsedAppointments = JSON.parse(storedAppointments);
         setAppointments(Array.isArray(parsedAppointments) ? parsedAppointments : sampleAppointments);
       } else {
         setAppointments(sampleAppointments);
-        sessionStorage.setItem('appointments', JSON.stringify(sampleAppointments));
+        localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
       }
     } catch (error) {
       console.error('Error loading appointments:', error);
@@ -135,30 +134,15 @@ export default function AppointmentsPage() {
   };
 
   useEffect(() => {
-    // Clear appointments when component mounts if user just logged in
-    const isNewLogin = sessionStorage.getItem('isNewLogin');
-    if (isNewLogin === 'true') {
-      sessionStorage.removeItem('appointments');
-      sessionStorage.setItem('isNewLogin', 'false');
-    }
-
     loadAppointments();
 
     const handleAppointmentBooked = () => {
       loadAppointments();
     };
 
-    // Clear appointments when user logs out
-    const handleLogout = () => {
-      sessionStorage.removeItem('appointments');
-    };
-
     window.addEventListener('appointmentBooked', handleAppointmentBooked);
-    window.addEventListener('logout', handleLogout);
-    
     return () => {
       window.removeEventListener('appointmentBooked', handleAppointmentBooked);
-      window.removeEventListener('logout', handleLogout);
     };
   }, []);
 
