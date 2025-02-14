@@ -1,4 +1,3 @@
-// hooks/useLocationService.ts
 import { useState } from 'react';
 
 interface LocationCoordinates {
@@ -44,7 +43,19 @@ export const useLocationService = () => {
           });
         },
         (error) => {
-          reject(error);
+          let errorMessage = 'Failed to get location';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location permission denied';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information unavailable';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out';
+              break;
+          }
+          reject(new Error(errorMessage));
         },
         {
           enableHighAccuracy: true,
@@ -58,8 +69,19 @@ export const useLocationService = () => {
   const getAddressFromCoords = async (latitude: number, longitude: number) => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+        {
+          headers: {
+            'Accept-Language': 'en-US,en;q=0.9',
+            'User-Agent': 'Emergency Assistance Form'
+          }
+        }
       );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch address');
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -74,41 +96,46 @@ export const useLocationService = () => {
       const coords = await getCurrentPosition();
       const addressData = await getAddressFromCoords(coords.latitude, coords.longitude);
   
-      const formattedAddress = [
+      if (!addressData || !addressData.address) {
+        throw new Error('Invalid address data received');
+      }
+  
+      const addressComponents = [
         addressData.address.road,
+        addressData.address.house_number,
         addressData.address.suburb,
         addressData.address.city,
         addressData.address.state,
         addressData.address.postcode,
         addressData.address.country
-      ]
-        .filter(Boolean)
-        .join(', ');
+      ].filter(Boolean);
   
-      setAddressDetails({
+      const formattedAddress = addressComponents.join(', ');
+  
+      const addressDetails: AddressDetails = {
         formatted: formattedAddress,
         coordinates: coords,
         raw: addressData
-      });
+      };
   
+      setAddressDetails(addressDetails);
       setLocationStatus({ loading: false, error: null, success: true });
   
-      // Update address field in the form
       if (updateAddressField) {
         updateAddressField(formattedAddress);
       }
   
-      return { formattedAddress, coords, addressData };
+      return addressDetails;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get location';
       setLocationStatus({
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to get location',
+        error: errorMessage,
         success: false
       });
       throw error;
     }
   };
-  
 
   return {
     getLocation,
