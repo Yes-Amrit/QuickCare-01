@@ -41,7 +41,7 @@ export default function DoctorAppointmentsPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/check-doctor');
+        const response = await fetch('../api/appointment');
         const data = await response.json();
         setIsDoctor(data.isDoctor);
         if (!data.isDoctor) {

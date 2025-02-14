@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "./contexts/AuthContext";
 import { Heart, Activity, Stethoscope, Pill, Ambulance } from "lucide-react";
+import EmergencySection from './components/EmergencySection';
 
 // Particle Animation Component
 interface Particle {
@@ -209,8 +210,6 @@ export default function HomePage() {
       <div className="absolute inset-0 bg-gradient-to-b from-blue-50 via-white to-blue-50" />
       <AnimatedBackground />
       <FloatingElements />
-
-      {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 pt-32 pb-20">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
@@ -266,6 +265,11 @@ export default function HomePage() {
             <StatsCard number="50+" text="Expert Doctors" delay={0.6} />
             <StatsCard number="24/7" text="Medical Care" delay={0.9} />
           </div>
+          {user && user.role !== "doctor" && (
+            <div className="mt-20">
+              <EmergencySection />
+            </div>
+          )}
         </div>
       </div>
     </section>
