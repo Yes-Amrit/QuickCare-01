@@ -81,13 +81,11 @@ export default function AppointmentsPage() {
 
   const loadAppointments = () => {
     try {
-      const storedAppointments = localStorage.getItem('appointments');
-      if (storedAppointments) {
-        const parsedAppointments = JSON.parse(storedAppointments);
-        setAppointments(Array.isArray(parsedAppointments) ? parsedAppointments : []);
+      const sessionAppointments = sessionStorage.getItem('appointments');
+      if (sessionAppointments) {
+        setAppointments(JSON.parse(sessionAppointments));
       } else {
         setAppointments([]);
-        localStorage.setItem('appointments', JSON.stringify([]));
       }
     } catch (error) {
       console.error('Error loading appointments:', error);
@@ -145,7 +143,11 @@ export default function AppointmentsPage() {
         </h1>
         
         <div className="space-y-6">
-          {appointments.length > 0 ? (
+          {appointments.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-2xl mb-4 text-blue-700">No appointments has been booked</p>
+            </div>
+          ) : (
             <div className="grid gap-6">
               {appointments.map((appointment, index) => (
                 <div
@@ -185,10 +187,6 @@ export default function AppointmentsPage() {
                   </Card>
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-2xl mb-4 text-blue-700">No appointments has been booked</p>
             </div>
           )}
 
