@@ -148,7 +148,7 @@ export default function Footer() {
     { name: "About Us", path: "/about" },
     { name: "Our Services", path: "/services" },
     { name: "Book Appointment", path: "/appointment" },
-    { name: "Start Consultation", path: "/consultation" },
+    { name: "Book Lab Test", path: "/consultation" },
     { name: "Contact Us", path: "/contact" },
   ].map(({ name, path }) => (
     <li key={name}>
