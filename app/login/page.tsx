@@ -16,8 +16,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); 
-  const { login } = useAuth();
+  const [errorMessage, setErrorMessage] = useState("");
+  const { login, user } = useAuth();
   const router = useRouter();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,13 +25,14 @@ export default function LoginPage() {
   const formRef = useRef<HTMLDivElement>(null);
   const roleFieldRef = useRef<HTMLDivElement>(null);
 
-  // Redirect if user is already logged in
+  // Check authentication status
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    // If user is already authenticated, redirect to home
+    if (user) {
       router.push("/");
+      router.refresh(); // Refresh router cache without full page reload
     }
-  }, [router]);
+  }, [user, router]);
 
   // Initialize animations
   useEffect(() => {
@@ -43,7 +44,8 @@ export default function LoginPage() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(""); // Reset error message before request
+    setIsLoading(true);
+    setErrorMessage("");
 
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup";
 
@@ -56,23 +58,35 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        console.log("Success:", data.message);
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-          router.push("/");
-          window.location.reload();
-        } else {
-          setErrorMessage("Unexpected server response. Please try again.");
-        }
+      if (response.ok && data.user) {
+        // Update auth context first
+        await login(data.user);
+        
+        // Store user data in localStorage
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
+        // Navigate to home page
+        router.push("/");
+        router.refresh(); // Refresh router cache without full page reload
       } else {
-        setErrorMessage(data.message || "An error occurred");
+        setErrorMessage(data.message || "An error occurred during authentication");
       }
     } catch (error) {
-      console.error("Fetch error:", error);
-      setErrorMessage("Network error occurred");
+      console.error("Authentication error:", error);
+      setErrorMessage("Network error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // If user is already logged in, show loading or redirect
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-100 relative overflow-hidden">
@@ -94,7 +108,11 @@ export default function LoginPage() {
             <p className="text-gray-600">{isLogin ? "Secure access to your health portal" : "Start your health journey today"}</p>
           </div>
 
-          {errorMessage && <p className="text-red-500 text-sm text-center mb-4">{errorMessage}</p>} {/* ✅ FIXED: Error Message Display */}
+          {errorMessage && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
+              {errorMessage}
+            </div>
+          )}
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="login-content">
@@ -102,20 +120,41 @@ export default function LoginPage() {
                 <UserCircle className="h-4 w-4" />
                 Username
               </Label>
-              <Input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} className="mt-1 focus-visible:ring-blue-500" placeholder="Enter your username" />
+              <Input 
+                type="text" 
+                id="username" 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value)} 
+                className="mt-1 focus-visible:ring-blue-500" 
+                placeholder="Enter your username"
+                disabled={isLoading}
+              />
             </div>
 
             <div className="login-content">
               <Label htmlFor="password" className="flex items-center gap-2 text-gray-700">
                 Password
               </Label>
-              <Input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 focus-visible:ring-blue-500" placeholder="Enter your password" />
+              <Input 
+                type="password" 
+                id="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                className="mt-1 focus-visible:ring-blue-500" 
+                placeholder="Enter your password"
+                disabled={isLoading}
+              />
             </div>
 
             {!isLogin && (
               <div ref={roleFieldRef} className="login-content overflow-hidden">
                 <Label className="block mb-2 text-gray-700">Register as:</Label>
-                <RadioGroup value={role} onValueChange={setRole} className="grid gap-2">
+                <RadioGroup 
+                  value={role} 
+                  onValueChange={setRole} 
+                  className="grid gap-2"
+                  disabled={isLoading}
+                >
                   {["user", "doctor"].map((r) => (
                     <div key={r} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-blue-50 transition-colors hover:scale-[1.02]">
                       <RadioGroupItem value={r} id={r} />
@@ -127,14 +166,31 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 login-content" disabled={isLoading}>
-              {isLoading ? <div className="flex items-center justify-center gap-2"><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</div> : isLogin ? "Sign In" : "Create Account"}
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 login-content" 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Processing...
+                </div>
+              ) : (
+                isLogin ? "Sign In" : "Create Account"
+              )}
             </Button>
           </form>
 
           <p className="login-content text-center mt-6 text-gray-600">
             {isLogin ? "New here? " : "Already have an account? "}
-            <button onClick={() => setIsLogin(!isLogin)} className="text-blue-600 font-semibold hover:underline underline-offset-4">{isLogin ? "Create Account" : "Login Instead"}</button>
+            <button 
+              onClick={() => setIsLogin(!isLogin)} 
+              className="text-blue-600 font-semibold hover:underline underline-offset-4"
+              disabled={isLoading}
+            >
+              {isLogin ? "Create Account" : "Login Instead"}
+            </button>
           </p>
         </div>
       </div>
