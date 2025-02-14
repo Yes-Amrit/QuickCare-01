@@ -1,9 +1,12 @@
 'use client'
+import { Elements } from '@stripe/react-stripe-js'
+import { loadStripe } from '@stripe/stripe-js'
+import { CheckoutForm } from '../components/CheckoutForm'
 
 import { useState, useEffect } from "react"
 import { Search, ShoppingCart, Pill, AmbulanceIcon as FirstAid, Stethoscope, Thermometer, Heart, Droplets, Tablets, Syringe } from "lucide-react"
 
-// Types for our data structures
+const stripePromise = loadStripe('pk_test_51QsUghPr6AEsQaoxeUXUFwm1cnfA4XkyZXtBFviDqScaiOpynS41n52pQjguv2jgjAy9077qN5bHZ9htkhXgqY5a00rk3ImqL5');
 
 interface ImageDimensions {
   width: number;
@@ -216,20 +219,14 @@ function FloatingIcon({
 }
 
 // Cart Component
-function Cart({ 
-  isOpen, 
-  onClose, 
-  items, 
-  onRemoveItem, 
-  onCheckout 
-}: { 
-  isOpen: boolean
-  onClose: () => void
-  items: CartItem[]
-  onRemoveItem: (id: string) => void
-  onCheckout: () => void
-}) {
+function Cart({ isOpen, onClose, items, onRemoveItem, onCheckout }: { isOpen: boolean, onClose: () => void, items: CartItem[], onRemoveItem: (id: string) => void, onCheckout: () => void }) {
+  const [showPayment, setShowPayment] = useState(false)
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+  const handlePaymentSuccess = () => {
+    onCheckout()
+    setShowPayment(false)
+  }
 
   if (!isOpen) return null
 
@@ -274,12 +271,18 @@ function Cart({
                 <span className="font-bold">Total:</span>
                 <span className="font-bold">Rs.{totalPrice.toFixed(2)}</span>
               </div>
-              <button
-                onClick={onCheckout}
-                className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition-all transform hover:scale-105"
-              >
-                Place Order
-              </button>
+              {showPayment ? (
+                <Elements stripe={stripePromise}>
+                  <CheckoutForm onPaymentSuccess={handlePaymentSuccess} />
+                </Elements>
+              ) : (
+                <button
+                  onClick={() => setShowPayment(true)}
+                  className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition-all transform hover:scale-105"
+                >
+                  Proceed to Payment
+                </button>
+              )}
             </div>
           </>
         ) : (
