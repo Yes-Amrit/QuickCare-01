@@ -1,5 +1,5 @@
-// hooks/useEmergency.ts
 import { useState } from 'react';
+import { useLocationService } from './useLocationService';
 
 interface EmergencyFormData {
   name: string;
@@ -30,12 +30,32 @@ export const useEmergency = ({ onSubmitSuccess, onSubmitError }: UseEmergencyPro
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { getLocation, locationStatus } = useLocationService();
 
   const updateFormField = (field: keyof EmergencyFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleUseLiveLocation = async () => {
+    try {
+      const { formattedAddress, coords, addressData } = await getLocation((address) =>
+        updateFormField('address', address)
+      );
+
+      setFormData(prev => ({
+        ...prev,
+        address: formattedAddress,
+        location: {
+          coordinates: coords,
+          addressDetails: addressData
+        }
+      }));
+    } catch (error) {
+      console.error('Error fetching live location:', error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +88,8 @@ export const useEmergency = ({ onSubmitSuccess, onSubmitError }: UseEmergencyPro
     formData,
     isSubmitting,
     updateFormField,
+    handleUseLiveLocation, // Call this when the user wants to autofill the location
+    locationStatus,
     handleSubmit
   };
 };

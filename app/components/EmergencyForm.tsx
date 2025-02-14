@@ -27,7 +27,7 @@ const EmergencyForm = () => {
         variant: "default",
       });
     },
-    onSubmitError: (error) => {
+    onSubmitError: () => {
       toast({
         title: "Error",
         description: "Failed to submit emergency request. Please try again.",
@@ -42,6 +42,18 @@ const EmergencyForm = () => {
       updateFormField('address', addressDetails.formatted);
     }
   }, [addressDetails, updateFormField]);
+
+  const handleUseLiveLocation = async () => {
+    try {
+      await getLocation((address) => updateFormField('address', address));
+    } catch (error) {
+      toast({
+        title: "Location Error",
+        description: "Failed to get location. Please check your GPS settings.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,20 +112,24 @@ const EmergencyForm = () => {
                 />
                 
                 <Button
-                type="button"
-                variant="outline"
-                onClick={() => getLocation((address) => updateFormField('address', address))}
-                className="w-full flex items-center justify-center gap-2"
-                disabled={locationStatus.loading}
->
-                {locationStatus.loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                <MapPin className="w-4 h-4" />
-                )}
-                {locationStatus.loading ? 'Getting Location...' : 'Get Current Location'}
+                  type="button"
+                  variant="outline"
+                  onClick={handleUseLiveLocation}
+                  className="w-full flex items-center justify-center gap-2"
+                  disabled={locationStatus.loading}
+                >
+                  {locationStatus.loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Getting Location...
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      Get Current Location
+                    </>
+                  )}
                 </Button>
-
 
                 {locationStatus.error && (
                   <Alert variant="destructive">

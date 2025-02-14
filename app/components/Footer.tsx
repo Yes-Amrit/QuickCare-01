@@ -14,7 +14,7 @@ export default function Footer() {
         {/* Middle Section - Quick Links */}
         <div>
           <h3 className="text-lg font-semibold text-blue-300 mb-3">Quick Links</h3>
-          <ul className="space-y-2">
+          {/* <ul className="space-y-2">
             {["Home", "About Us", "Our Services", "Book Appointment", "Start Consultation", "Contact Us"].map((link) => (
               <li key={link}>
                 <Link href={`/${link.toLowerCase().replace(/\s+/g, "-")}`} className="text-gray-300 hover:text-blue-400 transition">
@@ -22,7 +22,24 @@ export default function Footer() {
                 </Link>
               </li>
             ))}
-          </ul>
+          </ul> */}
+          <ul className="space-y-2">
+  {[
+    { name: "Home", route: "/" },
+    { name: "About Us", route: "/about" },
+    { name: "Our Services", route: "/services" },
+    { name: "Book Appointment", route: "/appointment" },
+    { name: "Lab Report Analyzer", route: "/consultation" },
+    { name: "Contact Us", route: "/contact" }
+  ].map(({ name, route }) => (
+    <li key={name}>
+      <Link href={route} className="text-gray-300 hover:text-blue-400 transition">
+        {name}
+      </Link>
+    </li>
+  ))}
+</ul>
+
         </div>
 
         {/* Right Section - Contact Info */}
