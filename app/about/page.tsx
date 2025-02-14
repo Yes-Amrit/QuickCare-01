@@ -176,7 +176,7 @@ export default function AboutUsPage() {
     },
     {
       name: "Prasun Singh",
-      role: "AI & Bakcend Developer",
+      role: "AI & Backend Developer",
       image: "/dp2.jpg", 
       github: "https://github.com/prasun24-15",
       linkedin: "https://www.linkedin.com/in/prasun-24-singh?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app ",
