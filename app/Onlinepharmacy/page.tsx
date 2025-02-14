@@ -2,9 +2,9 @@
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { CheckoutForm } from '../components/CheckoutForm'
-
 import { useState, useEffect } from "react"
 import { Search, ShoppingCart, Pill, AmbulanceIcon as FirstAid, Stethoscope, Thermometer, Heart, Droplets, Tablets, Syringe } from "lucide-react"
+
 
 const stripePromise = loadStripe('pk_test_51QsUghPr6AEsQaoxeUXUFwm1cnfA4XkyZXtBFviDqScaiOpynS41n52pQjguv2jgjAy9077qN5bHZ9htkhXgqY5a00rk3ImqL5');
 
