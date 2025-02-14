@@ -1,45 +1,22 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI ='mongodb+srv://quickcare:quickcare@cluster0.qpo69.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0';
-
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-declare global {
-  var mongoose: MongooseCache | undefined;
-}
-
-let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+const MONGODB_URI = 'mongodb+srv://quickcare:quickcare@cluster0.qpo69.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0';
 
 export async function connectDB() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts)
-      .then((mongoose) => {
-        console.log('✅ MongoDB Connected Successfully');
-        return mongoose;
-      });
-  }
-
   try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
-  }
+    if (mongoose.connection.readyState >= 1) {
+      console.log('Using existing MongoDB connection');
+      return;
+    }
 
-  return cached.conn;
+    // Explicitly specify the database name
+    await mongoose.connect(MONGODB_URI, {
+      dbName: 'test' // This specifies the database name
+    });
+    
+    console.log('✅ Connected to MongoDB database: test');
+  } catch (error) {
+    console.error('❌ MongoDB Connection Error:', error);
+    throw error;
+  }
 }

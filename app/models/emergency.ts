@@ -1,4 +1,3 @@
-
 import mongoose from 'mongoose';
 
 const emergencySchema = new mongoose.Schema({
@@ -27,10 +26,19 @@ const emergencySchema = new mongoose.Schema({
     enum: ['pending', 'processing', 'completed'],
     default: 'pending',
   },
-  createdAt: {
+  timestamp: {
     type: Date,
     default: Date.now,
-  },
+  }
+}, {
+  // Specify the collection name explicitly
+  collection: 'Emergency'
 });
 
-export const Emergency = mongoose.models.Emergency || mongoose.model('Emergency', emergencySchema);
+// Clear existing models to prevent OverwriteModelError
+if (mongoose.modelNames().includes('Emergency')) {
+  mongoose.deleteModel('Emergency');
+}
+
+// Create the model with explicit database and collection names
+export const Emergency = mongoose.model('Emergency', emergencySchema);
