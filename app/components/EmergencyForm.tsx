@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+'use client';
+
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,182 +11,155 @@ import { useLocationService } from '../../hooks/useLocationService';
 import { useEmergency } from '../../hooks/useEmergency';
 import { toast } from '@/components/ui/use-toast';
 
-const EmergencyForm = () => {
-  const [isOpen, setIsOpen] = useState(false);
+export default function EmergencyForm() {
+  const [open, setOpen] = React.useState(false);
   const { getLocation, locationStatus, addressDetails } = useLocationService();
   
   const {
     formData,
     isSubmitting,
     updateFormField,
-    handleSubmit: submitEmergency
+    handleSubmit
   } = useEmergency({
     onSubmitSuccess: () => {
-      setIsOpen(false);
+      setOpen(false);
       toast({
-        title: "Emergency Request Sent",
-        description: "Our team has been notified and will contact you immediately.",
-        variant: "default",
+        title: "Request Sent",
+        description: "Emergency team notified",
       });
     },
     onSubmitError: () => {
       toast({
         title: "Error",
-        description: "Failed to submit emergency request. Please try again.",
+        description: "Please try again",
         variant: "destructive",
       });
     }
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (addressDetails?.formatted) {
       updateFormField('address', addressDetails.formatted);
     }
-  }, [addressDetails, updateFormField]);
+  }, [addressDetails]);
 
-  const handleUseLiveLocation = async () => {
+  const handleLocationRequest = async () => {
     try {
       await getLocation((address) => updateFormField('address', address));
     } catch (error) {
       toast({
         title: "Location Error",
-        description: "Failed to get location. Please check your GPS settings.",
+        description: error instanceof Error ? error.message : "Location error",
         variant: "destructive",
       });
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await submitEmergency(e);
-  };
-
   return (
     <>
       <Button 
-        onClick={() => setIsOpen(true)}
+        onClick={() => setOpen(true)}
         className="bg-red-600 hover:bg-red-700 text-white px-8 py-6 text-lg rounded-full flex items-center gap-2 mx-auto"
       >
         <AlertTriangle className="w-6 h-6" />
-        Request Emergency Assistance
+        Emergency Assistance
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-red-600 flex items-center gap-2">
-              <AlertTriangle /> Emergency Request
-            </DialogTitle>
+            <DialogTitle>Emergency Request</DialogTitle>
             <DialogDescription>
-              Please fill out this form with your emergency details. Our team will respond immediately.
+              Please provide your details for immediate assistance
             </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium">Full Name</label>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="text-sm font-medium">Name</label>
               <Input
                 id="name"
-                required
                 value={formData.name}
                 onChange={(e) => updateFormField('name', e.target.value)}
-                placeholder="Enter your full name"
+                placeholder="Your full name"
+                required
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="phone" className="block text-sm font-medium">Phone Number</label>
+            <div>
+              <label htmlFor="phone" className="text-sm font-medium">Phone</label>
               <Input
                 id="phone"
-                required
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => updateFormField('phone', e.target.value)}
-                placeholder="Enter your phone number"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="address" className="block text-sm font-medium">Address</label>
-              <div className="space-y-2">
-                <Textarea
-                  id="address"
-                  required
-                  value={formData.address}
-                  onChange={(e) => updateFormField('address', e.target.value)}
-                  placeholder="Enter your address"
-                  rows={3}
-                />
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleUseLiveLocation}
-                  className="w-full flex items-center justify-center gap-2"
-                  disabled={locationStatus.loading}
-                >
-                  {locationStatus.loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Getting Location...
-                    </>
-                  ) : (
-                    <>
-                      <MapPin className="w-4 h-4" />
-                      Get Current Location
-                    </>
-                  )}
-                </Button>
-
-                {locationStatus.error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{locationStatus.error}</AlertDescription>
-                  </Alert>
-                )}
-
-                {locationStatus.success && addressDetails && (
-                  <Alert className="bg-green-50 text-green-700 border-green-200">
-                    <AlertDescription>
-                      Location captured successfully!
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="reason" className="block text-sm font-medium">Reason for Emergency</label>
-              <Textarea
-                id="reason"
+                placeholder="Your phone number"
                 required
-                value={formData.reason}
-                onChange={(e) => updateFormField('reason', e.target.value)}
-                placeholder="Briefly describe the emergency situation"
-                rows={4}
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div>
+              <label htmlFor="address" className="text-sm font-medium">Location</label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => updateFormField('address', e.target.value)}
+                placeholder="Your current address"
+                required
+              />
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsOpen(false)}
+                onClick={handleLocationRequest}
+                disabled={locationStatus.loading}
+                className="mt-2 w-full"
+              >
+                {locationStatus.loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Getting Location...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Use Current Location
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div>
+              <label htmlFor="reason" className="text-sm font-medium">Emergency Details</label>
+              <Textarea
+                id="reason"
+                value={formData.reason}
+                onChange={(e) => updateFormField('reason', e.target.value)}
+                placeholder="Describe your emergency"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="bg-red-600 hover:bg-red-700"
                 disabled={isSubmitting}
+                className="bg-red-600 hover:bg-red-700"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Submitting...
+                    Sending...
                   </>
                 ) : (
-                  'Submit Emergency Request'
+                  'Submit Request'
                 )}
               </Button>
             </div>
@@ -193,6 +168,4 @@ const EmergencyForm = () => {
       </Dialog>
     </>
   );
-};
-
-export default EmergencyForm;
+}

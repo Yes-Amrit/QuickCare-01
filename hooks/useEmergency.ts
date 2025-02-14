@@ -1,27 +1,13 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-
-interface EmergencyFormData {
-  name: string;
-  phone: string;
-  address: string;
-  reason: string;
-  location?: {
-    coordinates: {
-      latitude: number;
-      longitude: number;
-      accuracy: number;
-    };
-    addressDetails: any;
-  };
-}
+import { EmergencyFormData } from '../app/types/emergency';
 
 interface UseEmergencyProps {
   onSubmitSuccess?: () => void;
   onSubmitError?: (error: Error) => void;
 }
 
-export const useEmergency = ({ onSubmitSuccess, onSubmitError }: UseEmergencyProps = {}) => {
+export function useEmergency({ onSubmitSuccess, onSubmitError }: UseEmergencyProps = {}) {
   const [formData, setFormData] = useState<EmergencyFormData>({
     name: '',
     phone: '',
@@ -32,10 +18,7 @@ export const useEmergency = ({ onSubmitSuccess, onSubmitError }: UseEmergencyPro
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateFormField = (field: keyof EmergencyFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -43,27 +26,20 @@ export const useEmergency = ({ onSubmitSuccess, onSubmitError }: UseEmergencyPro
     setIsSubmitting(true);
 
     try {
-      // Add validation here if needed
-      if (!formData.name || !formData.phone || !formData.address || !formData.reason) {
-        throw new Error('Please fill in all required fields');
-      }
-
       const response = await fetch('/api/emergency', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit emergency request');
+        throw new Error('Submission failed');
       }
 
       onSubmitSuccess?.();
     } catch (error) {
-      console.error('Emergency submission error:', error);
-      onSubmitError?.(error as Error);
+      console.error('Submission error:', error);
+      onSubmitError?.(error instanceof Error ? error : new Error('Submission failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -75,4 +51,4 @@ export const useEmergency = ({ onSubmitSuccess, onSubmitError }: UseEmergencyPro
     updateFormField,
     handleSubmit
   };
-};
+}
