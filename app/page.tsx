@@ -244,7 +244,7 @@ export default function HomePage() {
                       <Link href="/appointment">Book an Appointment</Link>
                     </Button>
                     <Button asChild variant="outline" className="px-8 py-4 text-lg rounded-full">
-                      <Link href="/ai-help">Chat with AI</Link>
+                      <Link href="/ai-help">Virtual Doctor</Link>
                     </Button>
                     <Button asChild variant="outline" className="px-8 py-4 text-lg rounded-full">
                       <Link href="/labreport">Lab Report Analyser</Link>

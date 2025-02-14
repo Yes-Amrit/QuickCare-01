@@ -63,6 +63,7 @@ export default function LoginPage() {
         await login(data.user);
         
         // Store user data in localStorage
+        localStorage.removeItem('appointments');
         localStorage.setItem("user", JSON.stringify(data.user));
         
         // Navigate to home page
