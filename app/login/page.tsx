@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // ✅ FIXED: Defined setErrorMessage
+  const [errorMessage, setErrorMessage] = useState(""); 
   const { login } = useAuth();
   const router = useRouter();
 

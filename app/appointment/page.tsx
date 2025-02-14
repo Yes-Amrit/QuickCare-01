@@ -73,60 +73,60 @@ export default function AppointmentPage() {
   )
 
   const handleBookAppointment = async () => {
-    if (selectedDoctor && selectedDate && selectedTime && user) {
-      try {
-        const appointmentData = {
-          doctorId: selectedDoctor._id,
-          userId: user._id,
-          date: selectedDate.toISOString().split('T')[0],
-          time: selectedTime,
-          status: "upcoming",
-          doctor: selectedDoctor
-        };
-  
-        // Send data to API
-        const response = await fetch('/api/appointment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(appointmentData),
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to create appointment');
-        }
-  
-        const result = await response.json();
-  
-        if (result.success) {
-          // Store in localStorage for backup/offline functionality
-          const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-          const newAppointment = {
-            id: result.appointmentId,
-            ...appointmentData
-          };
-          localStorage.setItem('appointments', JSON.stringify([...existingAppointments, newAppointment]));
-  
-          setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
-          setShowNotification(true);
-          setIsDialogOpen(false);
-          
-          // Trigger appointment update
-          window.dispatchEvent(new Event('appointmentBooked'));
-        } else {
-          throw new Error('Failed to create appointment');
-        }
-      } catch (error) {
-        console.error('Error booking appointment:', error);
-        setNotificationMessage('An error occurred while booking the appointment');
-        setShowNotification(true);
+  if (selectedDoctor && selectedDate && selectedTime && user) {
+    try {
+      const appointmentData = {
+        doctorId: selectedDoctor._id,
+        userId: user._id,
+        date: selectedDate.toISOString().split('T')[0],
+        time: selectedTime,
+        status: "upcoming",
+        doctor: selectedDoctor
+      };
+
+      // Send data to API
+      const response = await fetch('/api/appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create appointment');
       }
-    } else {
-      setNotificationMessage('Please select a doctor, date, and time');
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Store in localStorage for backup/offline functionality
+        const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+        const newAppointment = {
+          id: result.appointmentId,
+          ...appointmentData
+        };
+        localStorage.setItem('appointments', JSON.stringify([...existingAppointments, newAppointment]));
+
+        setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
+        setShowNotification(true);
+        setIsDialogOpen(false);
+        
+        // Trigger appointment update
+        window.dispatchEvent(new Event('appointmentBooked'));
+      } else {
+        throw new Error('Failed to create appointment');
+      }
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      setNotificationMessage('An error occurred while booking the appointment');
       setShowNotification(true);
     }
-  };
+  } else {
+    setNotificationMessage('Please select a doctor, date, and time');
+    setShowNotification(true);
+  }
+};
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
