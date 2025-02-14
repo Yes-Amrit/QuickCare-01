@@ -6,11 +6,10 @@ export async function POST(req: Request) {
   try {
     console.log("🔹 Connecting to MongoDB...");
     const client = await clientPromise;
-    const db = client.db("test"); // ✅ Ensure correct database name
+    const db = client.db("test");
 
     const { username, password, role, ...details } = await req.json();
 
-    // Validate input
     if (!username || !password || !role) {
       return NextResponse.json(
         { message: "All fields are required" },
@@ -19,8 +18,7 @@ export async function POST(req: Request) {
     }
 
     console.log("🔎 Checking if user exists...");
-    const collectionName = role === "doctor" ? "Doctor" : "User";
-    const collection = db.collection(collectionName);
+    const collection = db.collection("User"); // ✅ Always using "User" collection
 
     const existingUser = await collection.findOne({ username });
     if (existingUser) {
@@ -35,11 +33,12 @@ export async function POST(req: Request) {
     console.log("🔐 Hashing password...");
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new user
+    // Insert new user (Fixed: Added role)
     console.log("📝 Creating new account...");
     await collection.insertOne({
       username,
       password: hashedPassword,
+      role, // ✅ Explicitly storing role
       ...details,
     });
 
