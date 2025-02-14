@@ -1,5 +1,4 @@
-// components/EmergencyForm.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +11,7 @@ import { toast } from '@/components/ui/use-toast';
 
 const EmergencyForm = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { 
-    getLocation, 
-    locationStatus, 
-    addressDetails 
-  } = useLocationService();
+  const { getLocation, locationStatus, addressDetails } = useLocationService();
   
   const {
     formData,
@@ -40,6 +35,13 @@ const EmergencyForm = () => {
       });
     }
   });
+
+  // Auto-update address field when location is retrieved
+  useEffect(() => {
+    if (addressDetails?.formatted) {
+      updateFormField('address', addressDetails.formatted);
+    }
+  }, [addressDetails, updateFormField]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,19 +100,20 @@ const EmergencyForm = () => {
                 />
                 
                 <Button
-                  type="button"
-                  variant="outline"
-                  onClick={getLocation}
-                  className="w-full flex items-center justify-center gap-2"
-                  disabled={locationStatus.loading}
-                >
-                  {locationStatus.loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <MapPin className="w-4 h-4" />
-                  )}
-                  {locationStatus.loading ? 'Getting Location...' : 'Get Current Location'}
+                type="button"
+                variant="outline"
+                onClick={() => getLocation((address) => updateFormField('address', address))}
+                className="w-full flex items-center justify-center gap-2"
+                disabled={locationStatus.loading}
+>
+                {locationStatus.loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                <MapPin className="w-4 h-4" />
+                )}
+                {locationStatus.loading ? 'Getting Location...' : 'Get Current Location'}
                 </Button>
+
 
                 {locationStatus.error && (
                   <Alert variant="destructive">

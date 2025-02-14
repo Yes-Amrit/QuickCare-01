@@ -67,13 +67,13 @@ export const useLocationService = () => {
     }
   };
 
-  const getLocation = async () => {
+  const getLocation = async (updateAddressField?: (address: string) => void) => {
     setLocationStatus({ loading: true, error: null, success: false });
-
+  
     try {
       const coords = await getCurrentPosition();
       const addressData = await getAddressFromCoords(coords.latitude, coords.longitude);
-
+  
       const formattedAddress = [
         addressData.address.road,
         addressData.address.suburb,
@@ -84,14 +84,20 @@ export const useLocationService = () => {
       ]
         .filter(Boolean)
         .join(', ');
-
+  
       setAddressDetails({
         formatted: formattedAddress,
         coordinates: coords,
         raw: addressData
       });
-
+  
       setLocationStatus({ loading: false, error: null, success: true });
+  
+      // Update address field in the form
+      if (updateAddressField) {
+        updateAddressField(formattedAddress);
+      }
+  
       return { formattedAddress, coords, addressData };
     } catch (error) {
       setLocationStatus({
@@ -102,6 +108,7 @@ export const useLocationService = () => {
       throw error;
     }
   };
+  
 
   return {
     getLocation,
