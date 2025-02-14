@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Star, DollarSign, Activity } from "lucide-react";
 import gsap from "gsap";
+import clientPromise from "../lib/db";
 
 type Doctor = {
   _id: string;
@@ -16,48 +17,13 @@ type Doctor = {
 };
 
 type Appointment = {
-  id: string;
+  _id: string;
   doctor: Doctor;
   userId: string;
   date: string;
   time: string;
   status: "upcoming" | "completed" | "cancelled";
 };
-
-const sampleAppointments: Appointment[] = [
-  {
-    id: "1",
-    doctor: {
-      _id: "d1",
-      name: "Dr. Sarah Wilson",
-      speciality: "Cardiologist",
-      fees: 1500,
-      availability: "Mon-Fri",
-      rating: 4.8,
-      image: "doctor1.jpg"
-    },
-    userId: "u1",
-    date: "2025-02-15",
-    time: "10:00 AM",
-    status: "upcoming"
-  },
-  {
-    id: "2",
-    doctor: {
-      _id: "d2",
-      name: "Dr. Michael Chen",
-      speciality: "Neurologist",
-      fees: 2000,
-      availability: "Tue-Sat",
-      rating: 4.9,
-      image: "doctor2.jpg"
-    },
-    userId: "u1",
-    date: "2025-02-20",
-    time: "2:30 PM",
-    status: "upcoming"
-  }
-];
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -114,20 +80,48 @@ export default function AppointmentsPage() {
     }, 100);
   }, [appointments]);
 
-  const loadAppointments = () => {
+  const loadAppointments = async () => {
     try {
-      const storedAppointments = localStorage.getItem('appointments');
-      if (storedAppointments) {
-        const parsedAppointments = JSON.parse(storedAppointments);
-        setAppointments(Array.isArray(parsedAppointments) ? parsedAppointments : sampleAppointments);
-      } else {
-        setAppointments(sampleAppointments);
-        localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
-      }
+      const client = await clientPromise;
+      const db = client.db("test");
+      
+      const appointments = await db.collection("Appointment")
+        .aggregate([
+          {
+            $lookup: {
+              from: "doctors",
+              localField: "doctor",
+              foreignField: "_id",
+              as: "doctorInfo"
+            }
+          },
+          {
+            $unwind: "$doctorInfo"
+          },
+          {
+            $project: {
+              _id: 1,
+              date: 1,
+              time: 1,
+              status: 1,
+              userId: 1,
+              doctor: {
+                _id: "$doctorInfo._id",
+                name: "$doctorInfo.name",
+                speciality: "$doctorInfo.speciality",
+                fees: "$doctorInfo.fees",
+                availability: "$doctorInfo.availability",
+                rating: "$doctorInfo.rating",
+                image: "$doctorInfo.image"
+              }
+            }
+          }
+        ]).toArray();
+
+      setAppointments(appointments as Appointment[]);
     } catch (error) {
       console.error('Error loading appointments:', error);
       setError('Failed to load appointments');
-      setAppointments(sampleAppointments);
     } finally {
       setLoading(false);
     }
@@ -184,7 +178,7 @@ export default function AppointmentsPage() {
             <div className="grid gap-6">
               {appointments.map((appointment, index) => (
                 <div
-                  key={appointment.id}
+                  key={appointment._id}
                   ref={el => { appointmentRefs.current[index] = el; }}
                 >
                   <Card className="bg-white shadow-lg border-0">
