@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '../../lib/db';
+import { ObjectId } from 'mongodb';
 
 export async function GET() {
   try {
@@ -44,6 +45,35 @@ export async function GET() {
     console.error('Database Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch appointments' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const client = await clientPromise;
+    const db = client.db("test");
+    
+    const body = await request.json();
+    
+    const appointmentData = {
+      ...body,
+      doctorId: new ObjectId(body.doctorId),
+      userId: new ObjectId(body.userId),
+      createdAt: new Date(),
+    };
+
+    const result = await db.collection("Appointment").insertOne(appointmentData);
+
+    return NextResponse.json({ 
+      success: true, 
+      appointmentId: result.insertedId 
+    });
+  } catch (error) {
+    console.error('Database Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to create appointment' },
       { status: 500 }
     );
   }

@@ -83,21 +83,40 @@ export default function AppointmentPage() {
           status: "upcoming",
           doctor: selectedDoctor
         };
-
-        // Store appointment in localStorage
-        const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-        const newAppointment = {
-          id: Date.now().toString(),
-          ...appointmentData
-        };
-        localStorage.setItem('appointments', JSON.stringify([...existingAppointments, newAppointment]));
-
-        setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
-        setShowNotification(true);
-        setIsDialogOpen(false);
-       
-        // Trigger appointment update
-        window.dispatchEvent(new Event('appointmentBooked'));
+  
+        // Send data to API
+        const response = await fetch('/api/appointment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(appointmentData),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to create appointment');
+        }
+  
+        const result = await response.json();
+  
+        if (result.success) {
+          // Store in localStorage for backup/offline functionality
+          const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+          const newAppointment = {
+            id: result.appointmentId,
+            ...appointmentData
+          };
+          localStorage.setItem('appointments', JSON.stringify([...existingAppointments, newAppointment]));
+  
+          setNotificationMessage(`Appointment booked with ${selectedDoctor.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
+          setShowNotification(true);
+          setIsDialogOpen(false);
+          
+          // Trigger appointment update
+          window.dispatchEvent(new Event('appointmentBooked'));
+        } else {
+          throw new Error('Failed to create appointment');
+        }
       } catch (error) {
         console.error('Error booking appointment:', error);
         setNotificationMessage('An error occurred while booking the appointment');
