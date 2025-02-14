@@ -16,13 +16,48 @@ type Doctor = {
 };
 
 type Appointment = {
-  _id: string;
+  id: string;
   doctor: Doctor;
   userId: string;
   date: string;
   time: string;
   status: "upcoming" | "completed" | "cancelled";
 };
+
+const sampleAppointments: Appointment[] = [
+  {
+    id: "1",
+    doctor: {
+      _id: "d1",
+      name: "Dr. Sarah Wilson",
+      speciality: "Cardiologist",
+      fees: 1500,
+      availability: "Mon-Fri",
+      rating: 4.8,
+      image: "doctor1.jpg"
+    },
+    userId: "u1",
+    date: "2025-02-15",
+    time: "10:00 AM",
+    status: "upcoming"
+  },
+  {
+    id: "2",
+    doctor: {
+      _id: "d2",
+      name: "Dr. Michael Chen",
+      speciality: "Neurologist",
+      fees: 2000,
+      availability: "Tue-Sat",
+      rating: 4.9,
+      image: "doctor2.jpg"
+    },
+    userId: "u1",
+    date: "2025-02-20",
+    time: "2:30 PM",
+    status: "upcoming"
+  }
+];
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -79,17 +114,20 @@ export default function AppointmentsPage() {
     }, 100);
   }, [appointments]);
 
-  const loadAppointments = async () => {
+  const loadAppointments = () => {
     try {
-      const response = await fetch('/api/appointments');
-      if (!response.ok) {
-        throw new Error('Failed to fetch appointments');
+      const storedAppointments = localStorage.getItem('appointments');
+      if (storedAppointments) {
+        const parsedAppointments = JSON.parse(storedAppointments);
+        setAppointments(Array.isArray(parsedAppointments) ? parsedAppointments : sampleAppointments);
+      } else {
+        setAppointments(sampleAppointments);
+        localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
       }
-      const data = await response.json();
-      setAppointments(data);
     } catch (error) {
       console.error('Error loading appointments:', error);
       setError('Failed to load appointments');
+      setAppointments(sampleAppointments);
     } finally {
       setLoading(false);
     }
@@ -146,7 +184,7 @@ export default function AppointmentsPage() {
             <div className="grid gap-6">
               {appointments.map((appointment, index) => (
                 <div
-                  key={appointment._id}
+                  key={appointment.id}
                   ref={el => { appointmentRefs.current[index] = el; }}
                 >
                   <Card className="bg-white shadow-lg border-0">

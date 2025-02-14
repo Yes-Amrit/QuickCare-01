@@ -223,7 +223,7 @@ export default function HomePage() {
             Your trusted healthcare companion for a healthier tomorrow
           </p>
 
-          {/* Dynamic Buttons Based on User */}
+          
           <div className="hero-buttons">
             <div className="flex flex-col md:flex-row gap-6 justify-center">
               {user ? (
