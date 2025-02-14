@@ -95,7 +95,7 @@ export default function AppointmentsPage() {
         opacity: 0,
         y: 20,
         duration: 0.4,
-        delay: 0.2
+        delay: 0.1
       });
     }
   }, []);
