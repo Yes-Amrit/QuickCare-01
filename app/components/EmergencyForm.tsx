@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +36,6 @@ const EmergencyForm = () => {
     }
   });
 
-  // Auto-update address field when location is retrieved
   useEffect(() => {
     if (addressDetails?.formatted) {
       updateFormField('address', addressDetails.formatted);
@@ -76,12 +75,16 @@ const EmergencyForm = () => {
             <DialogTitle className="text-2xl font-bold text-red-600 flex items-center gap-2">
               <AlertTriangle /> Emergency Request
             </DialogTitle>
+            <DialogDescription>
+              Please fill out this form with your emergency details. Our team will respond immediately.
+            </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Full Name</label>
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium">Full Name</label>
               <Input
+                id="name"
                 required
                 value={formData.name}
                 onChange={(e) => updateFormField('name', e.target.value)}
@@ -89,9 +92,10 @@ const EmergencyForm = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <div className="space-y-2">
+              <label htmlFor="phone" className="block text-sm font-medium">Phone Number</label>
               <Input
+                id="phone"
                 required
                 type="tel"
                 value={formData.phone}
@@ -100,10 +104,11 @@ const EmergencyForm = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Address</label>
+            <div className="space-y-2">
+              <label htmlFor="address" className="block text-sm font-medium">Address</label>
               <div className="space-y-2">
                 <Textarea
+                  id="address"
                   required
                   value={formData.address}
                   onChange={(e) => updateFormField('address', e.target.value)}
@@ -147,9 +152,10 @@ const EmergencyForm = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Reason for Emergency</label>
+            <div className="space-y-2">
+              <label htmlFor="reason" className="block text-sm font-medium">Reason for Emergency</label>
               <Textarea
+                id="reason"
                 required
                 value={formData.reason}
                 onChange={(e) => updateFormField('reason', e.target.value)}
