@@ -1,33 +1,59 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-import clientPromise from "../../../lib/db";
+import clientPromise from "../../../lib/db"; // ✅ Using direct MongoDB connection
+import bcrypt from "bcryptjs";
 
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(req: Request) {
   try {
-    const { username, password } = await request.json();
-    if (!username || !password) {
-      return NextResponse.json({ message: "Invalid input" }, { status: 400 });
-    }
-
+    console.log("🔹 Connecting to MongoDB...");
     const client = await clientPromise;
-    const db = client.db("test"); // Ensure the correct database name
-    const user = await db.collection("User").findOne({ username: username.toLowerCase() });
+    const db = client.db("test"); // Ensure the database is correct
 
-    if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    const { username, password } = await req.json();
+
+    // Validate fields
+    if (!username || !password) {
+      return NextResponse.json(
+        { message: "Username and password are required" },
+        { status: 400 }
+      );
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+    console.log("🔎 Checking if user exists...");
+    const collection = db.collection("User"); // Using "User" collection
+
+    // Check if user exists
+    const existingUser = await collection.findOne({ username });
+    if (!existingUser) {
+      console.error("⚠️ User not found:", username);
+      return NextResponse.json(
+        { message: "Invalid credentials" },
+        { status: 401 }
+      );
     }
 
+    // Compare hashed password with the entered password
+    console.log("🔐 Verifying password...");
+    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+    if (!isPasswordValid) {
+      console.error("⚠️ Invalid password for user:", username);
+      return NextResponse.json(
+        { message: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    // Successful login
+    console.log("✅ User authenticated successfully!");
     return NextResponse.json(
-      { message: "Login successful", user: { username: user.username, role: user.role } },
+      { message: "Login successful", user: existingUser },
       { status: 200 }
     );
+
   } catch (error) {
-    console.error("Login Error:", error);
-    return NextResponse.json({ message: "Login failed" }, { status: 500 });
+    console.error("❌ Login error:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
