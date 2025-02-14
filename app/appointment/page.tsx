@@ -81,7 +81,7 @@ export default function AppointmentPage() {
           date: selectedDate.toISOString().split('T')[0],
           time: selectedTime,
           status: "upcoming",
-          doctor: selectedDoctor // Include full doctor details
+          doctor: selectedDoctor
         };
 
         // Store appointment in localStorage
