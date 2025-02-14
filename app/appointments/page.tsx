@@ -81,13 +81,13 @@ export default function AppointmentsPage() {
 
   const loadAppointments = () => {
     try {
-      const sessionAppointments = sessionStorage.getItem('appointments');
-      if (sessionAppointments) {
-        const parsedAppointments = JSON.parse(sessionAppointments);
+      const storedAppointments = localStorage.getItem('appointments');
+      if (storedAppointments) {
+        const parsedAppointments = JSON.parse(storedAppointments);
         setAppointments(Array.isArray(parsedAppointments) ? parsedAppointments : []);
       } else {
         setAppointments([]);
-        sessionStorage.setItem('appointments', JSON.stringify([]));
+        localStorage.setItem('appointments', JSON.stringify([]));
       }
     } catch (error) {
       console.error('Error loading appointments:', error);
@@ -188,7 +188,7 @@ export default function AppointmentsPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-2xl mb-4 text-blue-700">No appointments found</p>
+              <p className="text-2xl mb-4 text-blue-700">No appointments has been booked</p>
             </div>
           )}
 
