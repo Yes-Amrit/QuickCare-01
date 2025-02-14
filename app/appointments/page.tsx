@@ -24,6 +24,41 @@ type Appointment = {
   status: "upcoming" | "completed" | "cancelled";
 };
 
+const sampleAppointments: Appointment[] = [
+  {
+    id: "1",
+    doctor: {
+      _id: "d1",
+      name: "Dr. Sarah Wilson",
+      speciality: "Cardiologist",
+      fees: 1500,
+      availability: "Mon-Fri",
+      rating: 4.8,
+      image: "doctor1.jpg"
+    },
+    userId: "u1",
+    date: "2025-02-15",
+    time: "10:00 AM",
+    status: "upcoming"
+  },
+  {
+    id: "2",
+    doctor: {
+      _id: "d2",
+      name: "Dr. Michael Chen",
+      speciality: "Neurologist",
+      fees: 2000,
+      availability: "Tue-Sat",
+      rating: 4.9,
+      image: "doctor2.jpg"
+    },
+    userId: "u1",
+    date: "2025-02-20",
+    time: "2:30 PM",
+    status: "upcoming"
+  }
+];
+
 const getStatusColor = (status: string) => {
   switch (status) {
     case "upcoming":
@@ -81,16 +116,18 @@ export default function AppointmentsPage() {
 
   const loadAppointments = () => {
     try {
-      const sessionAppointments = sessionStorage.getItem('appointments');
-      if (sessionAppointments) {
-        setAppointments(JSON.parse(sessionAppointments));
+      const storedAppointments = localStorage.getItem('appointments');
+      if (storedAppointments) {
+        const parsedAppointments = JSON.parse(storedAppointments);
+        setAppointments(Array.isArray(parsedAppointments) ? parsedAppointments : sampleAppointments);
       } else {
-        setAppointments([]);
+        setAppointments(sampleAppointments);
+        localStorage.setItem('appointments', JSON.stringify(sampleAppointments));
       }
     } catch (error) {
       console.error('Error loading appointments:', error);
       setError('Failed to load appointments');
-      setAppointments([]);
+      setAppointments(sampleAppointments);
     } finally {
       setLoading(false);
     }
@@ -143,11 +180,7 @@ export default function AppointmentsPage() {
         </h1>
         
         <div className="space-y-6">
-          {appointments.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-2xl mb-4 text-blue-700">No appointments has been booked</p>
-            </div>
-          ) : (
+          {appointments.length > 0 ? (
             <div className="grid gap-6">
               {appointments.map((appointment, index) => (
                 <div
@@ -187,6 +220,10 @@ export default function AppointmentsPage() {
                   </Card>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-2xl mb-4 text-blue-700">No appointments found</p>
             </div>
           )}
 
