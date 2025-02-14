@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   PaymentElement,
   useStripe,
-  useElements,
-  Elements,
+  useElements
 } from '@stripe/react-stripe-js';
 
 interface CheckoutFormProps {
@@ -16,23 +15,6 @@ export function CheckoutForm({ onPaymentSuccess, amount }: CheckoutFormProps) {
   const elements = useElements();
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [clientSecret, setClientSecret] = useState('');
-
-  useEffect(() => {
-    // Create PaymentIntent as soon as the component loads
-    fetch('/api/create-payment-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setClientSecret(data.clientSecret);
-      })
-      .catch((err) => {
-        setMessage('Failed to initialize payment. Please try again.');
-      });
-  }, [amount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,10 +44,6 @@ export function CheckoutForm({ onPaymentSuccess, amount }: CheckoutFormProps) {
 
     setIsLoading(false);
   };
-
-  if (!clientSecret) {
-    return <div className="text-center py-4">Loading payment form...</div>;
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

@@ -221,14 +221,47 @@ function FloatingIcon({
 // Cart Component
 function Cart({ isOpen, onClose, items, onRemoveItem, onCheckout }: { isOpen: boolean, onClose: () => void, items: CartItem[], onRemoveItem: (id: string) => void, onCheckout: () => void }) {
   const [showPayment, setShowPayment] = useState(false)
-  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const [clientSecret, setClientSecret] = useState("")
+  interface CartProps {
+    isOpen: boolean
+    onClose: () => void
+    items: CartItem[]
+    onRemoveItem: (id: string) => void
+    onCheckout: () => void
+  }
+
+  const totalPrice: number = items.reduce((sum: number, item: CartItem) => sum + item.price * item.quantity, 0)
 
   const handlePaymentSuccess = () => {
     onCheckout()
     setShowPayment(false)
   }
 
+  useEffect(() => {
+    if (showPayment) {
+      fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: totalPrice }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setClientSecret(data.clientSecret)
+        })
+        .catch((err) => {
+          console.error('Failed to create payment intent:', err)
+        })
+    }
+  }, [showPayment, totalPrice])
+
   if (!isOpen) return null
+
+  const options = {
+    clientSecret,
+    appearance: {
+      theme: 'stripe' as 'stripe',
+    },
+  }
 
   return (
     <>
@@ -242,20 +275,13 @@ function Cart({ isOpen, onClose, items, onRemoveItem, onCheckout }: { isOpen: bo
           <>
             <div className="space-y-4 mb-6">
               {items.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="flex items-center justify-between animate-fadeIn"
-                >
+                <div key={item.id} className="flex items-center justify-between animate-fadeIn">
                   <div>
                     <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      Quantity: {item.quantity}
-                    </p>
+                    <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="font-medium">
-                      Rs.{(item.price * item.quantity).toFixed(2)}
-                    </span>
+                    <span className="font-medium">Rs.{(item.price * item.quantity).toFixed(2)}</span>
                     <button
                       onClick={() => onRemoveItem(item.id)}
                       className="text-red-500 hover:text-red-600 transition-colors"
@@ -272,20 +298,21 @@ function Cart({ isOpen, onClose, items, onRemoveItem, onCheckout }: { isOpen: bo
                 <span className="font-bold">Rs.{totalPrice.toFixed(2)}</span>
               </div>
               {showPayment ? (
-  <Elements stripe={stripePromise}>
-    <CheckoutForm 
-      onPaymentSuccess={handlePaymentSuccess} 
-      amount={totalPrice} 
-    />
-  </Elements>
-) : (
-  <button
-    onClick={() => setShowPayment(true)}
-    className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition-all transform hover:scale-105"
-  >
-    Proceed to Payment
-  </button>
-)}
+                clientSecret ? (
+                  <Elements stripe={stripePromise} options={options}>
+                    <CheckoutForm onPaymentSuccess={handlePaymentSuccess} amount={totalPrice} />
+                  </Elements>
+                ) : (
+                  <div className="text-center py-4">Loading payment form...</div>
+                )
+              ) : (
+                <button
+                  onClick={() => setShowPayment(true)}
+                  className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition-all transform hover:scale-105"
+                >
+                  Proceed to Payment
+                </button>
+              )}
             </div>
           </>
         ) : (
